@@ -1,4 +1,4 @@
-import { BanknoteArrowDown, BanknoteArrowUp, Wallet } from 'lucide-react'
+import { BanknoteArrowDown, BanknoteArrowUp, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useEntryDrawer } from '../components/EntryDrawer'
@@ -119,11 +119,11 @@ export default function Dashboard() {
         </div>
         <div className="mt-3.5 grid grid-cols-2 gap-3">
           <div>
-            <div className="text-xs text-text-950/80">▲ Deposited</div>
+            <div className="flex items-center gap-1.5 text-xs text-text-950/80"><TrendingUp size={16} strokeWidth={2.25} aria-hidden />Deposited</div>
             <div className="mt-0.5 text-[17px] font-semibold">{php(totals.deposits)}</div>
           </div>
           <div>
-            <div className="text-xs text-text-950/80">▼ Withdrawn</div>
+            <div className="flex items-center gap-1.5 text-xs text-withdraw"><TrendingDown size={16} strokeWidth={2.25} aria-hidden />Withdrawn</div>
             <div className="mt-0.5 text-[17px] font-semibold">{php(totals.withdrawals)}</div>
           </div>
         </div>
