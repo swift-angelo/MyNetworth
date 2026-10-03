@@ -1,6 +1,6 @@
 import { ArrowLeftRight, House, Settings2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { EntryDrawerProvider } from './components/EntryDrawer'
 import { seedIfEmpty } from './db/db'
 import { useAuth } from './lib/auth'
@@ -32,6 +32,55 @@ function AnimatedRoutes() {
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </div>
+  )
+}
+
+/** The scrolling area. Swiping left/right on it moves to the next/previous tab. Native listeners, so swipes inside portaled drawers/readers never reach it. */
+function SwipeMain({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLElement>(null)
+  const navigate = useNavigate()
+  const pathRef = useRef('')
+  pathRef.current = useLocation().pathname
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    let start: { x: number; y: number; t: number } | null = null
+
+    // Don't hijack swipes that start on inputs or inside something that scrolls sideways itself.
+    const blocked = (target: EventTarget | null) => {
+      for (let n = target as HTMLElement | null; n && n !== el; n = n.parentElement) {
+        if (/^(INPUT|TEXTAREA|SELECT)$/.test(n.tagName) || n.dataset?.noSwipe !== undefined) return true
+        if (n.scrollWidth > n.clientWidth && /(auto|scroll)/.test(getComputedStyle(n).overflowX)) return true
+      }
+      return false
+    }
+
+    const onStart = (e: TouchEvent) => {
+      start = e.touches.length === 1 && !blocked(e.target) ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : null
+    }
+    const onEnd = (e: TouchEvent) => {
+      if (!start) return
+      const dx = e.changedTouches[0].clientX - start.x
+      const dy = e.changedTouches[0].clientY - start.y
+      const fast = Date.now() - start.t < 600
+      start = null
+      if (!fast || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return
+      const next = tabIndex(pathRef.current) + (dx < 0 ? 1 : -1)
+      if (next >= 0 && next < links.length) navigate(links[next][0])
+    }
+    el.addEventListener('touchstart', onStart, { passive: true })
+    el.addEventListener('touchend', onEnd, { passive: true })
+    return () => {
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchend', onEnd)
+    }
+  }, [navigate])
+
+  return (
+    <main ref={ref} id="scroll-root" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+      {children}
+    </main>
   )
 }
 
@@ -121,11 +170,11 @@ function AppShell() {
       <EntryDrawerProvider>
       {/* App shell: exactly one dynamic-viewport tall, so the tab bar stays at the true bottom even as iOS Chrome's toolbar shows/hides. Only <main> scrolls. */}
       <div className="relative flex h-dvh flex-col overflow-hidden">
-      <main id="scroll-root" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+      <SwipeMain>
         <div className="mx-auto max-w-2xl space-y-3.5 px-5 pb-32 pt-[env(safe-area-inset-top)]">
           <AnimatedRoutes />
         </div>
-      </main>
+      </SwipeMain>
       <TabBar />
       </div>
       </EntryDrawerProvider>

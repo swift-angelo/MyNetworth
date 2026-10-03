@@ -4,7 +4,6 @@ import { useArticle, type ArticleBlock } from '../lib/article'
 import type { NewsItem } from '../lib/news'
 import { timeAgo } from '../lib/time'
 import { Overlay, useModalLock } from './Sheet'
-import { btnCls } from './ui'
 
 /** Consecutive list items become one list; everything else is its own element. All text, never HTML. */
 function Blocks({ blocks }: { blocks: ArticleBlock[] }) {
@@ -47,7 +46,7 @@ function Blocks({ blocks }: { blocks: ArticleBlock[] }) {
 
 /**
  * Full-screen reader for one news story. Shows the whole article in the app when the publisher allows it,
- * otherwise the excerpt, and always offers a button that opens the original at the source.
+ * otherwise the excerpt, and always offers a link icon that opens the original at the source.
  */
 export default function ArticleReader({ item, shown, onClose }: { item: NewsItem; shown: boolean; onClose: () => void }) {
   useModalLock(onClose)
@@ -86,7 +85,7 @@ export default function ArticleReader({ item, shown, onClose }: { item: NewsItem
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <article className="mx-auto max-w-2xl px-5 pb-40 pt-5">
+          <article className="mx-auto max-w-2xl px-5 pb-[max(env(safe-area-inset-bottom),40px)] pt-5">
             <p className="text-xs text-text-950/65">
               {item.source} · {new Date(item.publishedAt).toLocaleString('en-PH', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })} ·{' '}
               {timeAgo(item.publishedAt)}
@@ -118,8 +117,8 @@ export default function ArticleReader({ item, shown, onClose }: { item: NewsItem
                   <p className="mt-5 text-[17px] text-text-950/70">No preview is available for this story.</p>
                 )}
                 <div className="glass mt-6 rounded-[14px] p-4 text-sm leading-snug text-text-950/80">
-                  The full article can't be shown here. {item.source} may block readers like this or keep the text behind a subscription. Use the button below to read it
-                  at the source.
+                  The full article can't be shown here. {item.source} may block readers like this or keep the text behind a subscription. Use the link icon at the top to read it at the
+                  source.
                 </div>
               </>
             )}
@@ -128,11 +127,6 @@ export default function ArticleReader({ item, shown, onClose }: { item: NewsItem
           </article>
         </div>
 
-        <div className="glass-bar absolute inset-x-0 bottom-0 z-10 border-t border-text-950/10 px-5 pb-[max(env(safe-area-inset-bottom),16px)] pt-3">
-          <a href={item.url} target="_blank" rel="noopener noreferrer" className={btnCls + ' mx-auto flex max-w-2xl items-center justify-center gap-2'}>
-            Read at {item.source} <ExternalLink size={18} />
-          </a>
-        </div>
       </div>
     </Overlay>
   )
