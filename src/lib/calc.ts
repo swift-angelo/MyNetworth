@@ -46,3 +46,9 @@ export function groupNet<K extends string | number>(entries: Entry[], rates: Rec
   }
   return [...map.values()]
 }
+
+/** Running net total (deposits minus withdrawals, PHP minor units) after each day that has entries, oldest first. */
+export function runningTotal(entries: Entry[], rates: Record<string, number>): number[] {
+  let sum = 0
+  return groupByPeriod(entries, rates, 'day').map((r) => (sum += r.deposits - r.withdrawals))
+}

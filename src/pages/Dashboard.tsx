@@ -3,12 +3,13 @@ import { useMemo, useState } from 'react'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useEntryDrawer } from '../components/EntryDrawer'
 import NewsSection from '../components/NewsSection'
+import Sparkline from '../components/Sparkline'
 import { AppHeader, EmptyState, InstitutionLogo, PillGroup } from '../components/ui'
 import { SEED_INSTITUTIONS, colorFor } from '../data/institutions'
 import { logoFor } from '../data/logos'
 import { CATEGORY_LABELS } from '../db/schema'
 import { useData } from '../hooks/useData'
-import { groupByPeriod, groupNet, type Period } from '../lib/calc'
+import { groupByPeriod, groupNet, runningTotal, type Period } from '../lib/calc'
 import { formatMoney } from '../lib/money'
 
 const tooltipStyle = { background: 'var(--background-100)', border: '1px solid var(--glass-border)', borderRadius: 12, color: 'var(--text-950)' }
@@ -34,6 +35,8 @@ export default function Dashboard() {
     const rows = groupNet(entries, rates, () => 'all')
     return rows[0] ?? { deposits: 0, withdrawals: 0, net: 0 }
   }, [entries, rates])
+
+  const trend = useMemo(() => runningTotal(entries, rates), [entries, rates])
 
   const byInstitution = useMemo(
     () =>
@@ -112,8 +115,9 @@ export default function Dashboard() {
     <div className="space-y-3.5">
       <AppHeader />
 
-      <section className="rounded-[18px] border border-text-950/15 bg-gradient-to-br from-primary-300/35 via-primary-200/20 to-text-950/10 bg-clip-padding px-5 pb-5 pt-[18px] text-text-950 shadow-[inset_0_1px_0_var(--glass-highlight),0_12px_32px_var(--glass-shadow)] backdrop-blur-xl backdrop-saturate-150">
-        <div className="text-[46px] font-bold leading-[1.1] tracking-tighter">
+      <section className="relative rounded-[18px] border border-text-950/15 bg-gradient-to-br from-primary-300/35 via-primary-200/20 to-text-950/10 bg-clip-padding px-5 pb-5 pt-[18px] text-text-950 shadow-[inset_0_1px_0_var(--glass-highlight),0_12px_32px_var(--glass-shadow)] backdrop-blur-xl backdrop-saturate-150">
+        {trend.length > 1 && <Sparkline values={trend.slice(-14)} className="absolute right-4 top-[18px]" />}
+        <div className={(whole.length > 9 ? 'text-[36px]' : 'text-[46px]') + ' font-bold leading-[1.1] tracking-tighter'}>
           ₱{whole}
           {cents !== '00' && <span className="text-text-950/60">.{cents}</span>}
         </div>
