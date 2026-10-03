@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
+    "@supabase/supabase-js": "^2.117.2",
     "dexie": "^4.4.6",
     "dexie-react-hooks": "^4.4.0",
     "fast-xml-parser": "^5.11.2",

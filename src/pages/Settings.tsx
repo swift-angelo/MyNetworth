@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { PageTitle, Segmented, Spinner, btnCls, pause } from '../components/ui'
 import { resetAppCache } from '../components/ErrorBoundary'
 import { exportAll, importAll, wipeAll } from '../db/db'
+import { useAuth } from '../lib/auth'
 import { useData } from '../hooks/useData'
 import { refreshRates, useFxStatus } from '../lib/fx'
 import { getThemePref, setThemePref, type ThemePref } from '../lib/theme'
@@ -28,6 +29,7 @@ export default function Settings() {
   const [msg, setMsg] = useState('')
   const [theme, setTheme] = useState<ThemePref>(getThemePref())
   const fxStatus = useFxStatus()
+  const { user, signOut } = useAuth()
   const [busy, setBusy] = useState<string | null>(null)
 
   /** Runs one action at a time; every button is disabled until it finishes. */
@@ -78,6 +80,20 @@ export default function Settings() {
   return (
     <div className="space-y-3">
       <PageTitle>Settings</PageTitle>
+
+      <section className="glass rounded-[16px] p-4">
+        <h2 className="text-[15px] font-semibold">Account</h2>
+        <p className="mt-1 break-all text-[13px] leading-snug text-text-950/65">
+          {user?.email ? `Signed in with Google as ${user.email}.` : 'Signed in with Google.'} Signing out keeps your entries on this phone.
+        </p>
+        <button
+          className={secondaryBtn + ' mt-3.5 w-full'}
+          disabled={busy !== null}
+          onClick={() => run('signout', () => signOut().catch((e: Error) => setMsg('Sign out failed: ' + e.message)))}
+        >
+          {busy === 'signout' ? <Spinner size={18} /> : 'Sign out'}
+        </button>
+      </section>
 
       <section className="glass rounded-[16px] p-4">
         <h2 className="text-[15px] font-semibold">Backup</h2>

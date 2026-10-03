@@ -27,3 +27,16 @@ Netlify builds from this repo using `netlify.toml` (`npm run build`, publish `di
 ## Notes
 
 Bank and wallet logos in `public/logos/` are the property of their respective owners and are used only to identify accounts.
+
+## Google sign-in (Supabase)
+
+The app opens only after signing in with Google. Data still stays in this browser (IndexedDB); sign-in is a gate, not sync.
+
+One-time setup:
+
+1. **Supabase**: create a project. Authentication -> Providers -> Google: enable, paste the Google client ID and secret.
+2. **Google Cloud Console**: create an OAuth client (type: Web application). Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`.
+3. **Supabase** -> Authentication -> URL Configuration: Site URL `https://teal-lily-e478d6.netlify.app`; add `http://localhost:5173/*` and `http://localhost:4173/*` to Redirect URLs.
+4. **Netlify** -> Site configuration -> Environment variables: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (Supabase -> Project Settings -> API). For local runs, put the same two in `.env.local` (see `.env.example`). Then redeploy.
+
+Until both variables are set, the login screen shows "Sign-in isn't configured" and the app stays closed.

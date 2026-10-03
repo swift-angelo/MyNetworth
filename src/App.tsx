@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react'
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { EntryDrawerProvider } from './components/EntryDrawer'
 import { seedIfEmpty } from './db/db'
+import { useAuth } from './lib/auth'
 import { refreshRates } from './lib/fx'
 import Dashboard from './pages/Dashboard'
 import Entries from './pages/Entries'
+import Login from './pages/Login'
 import Settings from './pages/Settings'
 
 const links = [
@@ -69,7 +71,8 @@ function TabBar() {
   )
 }
 
-export default function App() {
+/** The app proper: only mounted once signed in, so seeding, live rates and news never run before that. */
+function AppShell() {
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
@@ -128,4 +131,11 @@ export default function App() {
       </EntryDrawerProvider>
     </HashRouter>
   )
+}
+
+export default function App() {
+  const { status } = useAuth()
+  if (status === 'loading') return <div className="p-6 text-text-950/75">Loading…</div>
+  if (status === 'signedOut') return <Login />
+  return <AppShell />
 }

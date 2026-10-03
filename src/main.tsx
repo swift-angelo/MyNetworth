@@ -4,6 +4,7 @@ import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
+import { AuthProvider } from './lib/auth.tsx'
 import { applyTheme, getThemePref, watchSystemTheme } from './lib/theme.ts'
 
 // Installed PWAs rarely do a fresh page load, so ask for a new version every time the app comes back to the foreground.
@@ -25,7 +26,9 @@ watchSystemTheme()
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </ErrorBoundary>
   </StrictMode>,
 )

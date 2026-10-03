@@ -77,21 +77,54 @@ export function Sheet({
 }) {
   useModalLock(onClose, locked)
 
+  // Drag the top of the sheet (grabber + title) down to dismiss; past a third of the way or a quick flick closes it.
+  const [dragY, setDragY] = useState<number | null>(null)
+  const drag = useRef<{ startY: number; startT: number } | null>(null)
+
+  function onDragStart(e: React.PointerEvent<HTMLDivElement>) {
+    if (locked || (e.target as HTMLElement).closest('button')) return
+    drag.current = { startY: e.clientY, startT: e.timeStamp }
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setDragY(0)
+  }
+  function onDragMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (drag.current) setDragY(Math.max(0, e.clientY - drag.current.startY))
+  }
+  function onDragEnd(e: React.PointerEvent<HTMLDivElement>) {
+    const d = drag.current
+    drag.current = null
+    if (!d) return
+    const dy = Math.max(0, e.clientY - d.startY)
+    const flick = dy / Math.max(1, e.timeStamp - d.startT) > 0.6
+    setDragY(null) // clears the inline offset so the class below animates it either home or away
+    if (dy > 110 || (flick && dy > 30)) onClose()
+  }
+
   return (
     <Overlay>
       <div className="fixed inset-0 z-30" role="dialog" aria-modal="true" aria-label={label}>
         <div
-          className={'absolute inset-0 bg-[#041801]/40 backdrop-blur-sm transition-opacity duration-300 ' + (shown ? 'opacity-100' : 'opacity-0')}
+          className={'absolute inset-0 bg-[#041801]/40 backdrop-blur-sm ' + (dragY === null ? 'transition-opacity duration-300 ' : '') + (shown ? 'opacity-100' : 'opacity-0')}
+          style={dragY ? { opacity: Math.max(0.2, 1 - dragY / 420) } : undefined}
           onClick={() => !locked && onClose()}
         />
         <div
           className={
-            'sheet absolute inset-x-0 bottom-0 mx-auto max-h-[92dvh] max-w-2xl overflow-y-auto overscroll-contain rounded-t-[22px] px-5 pb-[max(env(safe-area-inset-bottom),20px)] transition-transform duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)] ' +
+            'sheet absolute inset-x-0 bottom-0 mx-auto max-h-[92dvh] max-w-2xl overflow-y-auto overscroll-contain rounded-t-[22px] px-5 pb-[max(env(safe-area-inset-bottom),20px)] ease-[cubic-bezier(0.22,1,0.36,1)] ' +
+            (dragY === null ? 'transition-transform duration-[350ms] ' : '') +
             (shown ? 'translate-y-0' : 'translate-y-full')
           }
+          style={dragY ? { transform: `translateY(${dragY}px)` } : undefined}
         >
-          <div className="mx-auto mt-2.5 h-1.5 w-10 rounded-full bg-text-950/20" />
-          <div className="flex items-center justify-between pb-2 pt-1">
+          <div
+            className="-mx-5 touch-none select-none px-5"
+            onPointerDown={onDragStart}
+            onPointerMove={onDragMove}
+            onPointerUp={onDragEnd}
+            onPointerCancel={onDragEnd}
+          >
+          <div className="mx-auto h-1.5 w-10 translate-y-2.5 rounded-full bg-text-950/20" />
+          <div className="flex items-center justify-between pb-2 pt-3.5">
             <h2 className="pl-1 text-xl font-bold tracking-tight">{title ?? label}</h2>
             <button
               type="button"
@@ -102,6 +135,7 @@ export function Sheet({
             >
               <X size={22} />
             </button>
+          </div>
           </div>
           {children}
         </div>
