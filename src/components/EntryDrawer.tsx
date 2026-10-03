@@ -6,7 +6,7 @@ import { CATEGORY_LABELS, CURRENCIES, type Category, type EntryType } from '../d
 import { useData } from '../hooks/useData'
 import { formatAmountInput, toMinor } from '../lib/money'
 import { Sheet, useSheetState } from './Sheet'
-import { Field, InstitutionLogo, Segmented, SelectInput, btnCls, controlCls, inputCls, today } from './ui'
+import { Field, InstitutionLogo, Segmented, SelectInput, Spinner, btnCls, controlCls, inputCls, pause, today } from './ui'
 
 type DrawerOptions = { /** pre-select this bank or wallet (matched by name) */ institutionName?: string }
 type DrawerApi = { openDrawer: (type?: EntryType, options?: DrawerOptions) => void }
@@ -97,15 +97,18 @@ function EntryDrawer({
         })) as number
       }
       const trimmed = note.trim()
-      await db.entries.add({
-        institutionId: instId,
-        type,
-        amountMinor: minor,
-        currency,
-        date,
-        note: trimmed,
-        noteUpdatedAt: trimmed ? new Date().toISOString() : undefined,
-      })
+      await Promise.all([
+        db.entries.add({
+          institutionId: instId,
+          type,
+          amountMinor: minor,
+          currency,
+          date,
+          note: trimmed,
+          noteUpdatedAt: trimmed ? new Date().toISOString() : undefined,
+        }),
+        pause(), // keep the spinner visible
+      ])
       setJustAdded(true)
       setTimeout(onClose, 900) // let the check mark show, then slide the drawer away
     } catch {
@@ -243,6 +246,10 @@ function EntryDrawer({
             {justAdded ? (
               <span key="added" className="pop inline-flex items-center gap-2">
                 <Check size={22} strokeWidth={3} /> Added
+              </span>
+            ) : saving ? (
+              <span className="inline-flex items-center gap-2">
+                <Spinner /> Saving…
               </span>
             ) : type === 'deposit' ? (
               'Add deposit'

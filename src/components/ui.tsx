@@ -1,4 +1,4 @@
-import { ChevronDown, DatabaseBackup } from 'lucide-react'
+import { ChevronDown, DatabaseBackup, LoaderCircle } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { logoFor } from '../data/logos'
@@ -18,6 +18,14 @@ export function SelectInput({ className = '', ...props }: React.SelectHTMLAttrib
     </span>
   )
 }
+
+/** Spinning ring shown on a button while its action runs. */
+export function Spinner({ size = 20 }: { size?: number }) {
+  return <LoaderCircle size={size} strokeWidth={2.5} className="animate-spin" aria-hidden />
+}
+
+/** Resolves after `ms`, so a spinner is visible long enough to register even when the work is instant. */
+export const pause = (ms = 500) => new Promise<void>((r) => setTimeout(r, ms))
 
 export const btnCls = 'min-h-14 w-full rounded-[12px] transition duration-150 active:scale-[0.98] bg-primary-500 px-4 py-3 text-lg font-semibold text-on-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_8px_20px_color-mix(in_srgb,var(--primary-500)_35%,transparent)] active:bg-primary-400 disabled:opacity-50'
 export const btnGhostCls =

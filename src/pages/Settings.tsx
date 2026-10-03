@@ -1,6 +1,6 @@
 import { RefreshCw } from 'lucide-react'
 import { useState } from 'react'
-import { PageTitle, Segmented, btnCls } from '../components/ui'
+import { PageTitle, Segmented, Spinner, btnCls, pause } from '../components/ui'
 import { resetAppCache } from '../components/ErrorBoundary'
 import { exportAll, importAll, wipeAll } from '../db/db'
 import { useData } from '../hooks/useData'
@@ -35,7 +35,7 @@ export default function Settings() {
     if (busy !== null) return
     setBusy(key)
     try {
-      await fn()
+      await Promise.all([fn(), pause()])
     } finally {
       setBusy(null)
     }
@@ -87,14 +87,14 @@ export default function Settings() {
           disabled={busy !== null}
           onClick={() => run('backup', async () => download('mynetworth-backup.json', JSON.stringify(await exportAll(), null, 2), 'application/json'))}
         >
-          Export backup
+          {busy === 'backup' ? <Spinner /> : 'Export backup'}
         </button>
         <div className="mt-2.5 grid grid-cols-2 gap-2.5">
           <button className={secondaryBtn} disabled={busy !== null} onClick={() => run('csv', exportCsv)}>
-            Export CSV
+            {busy === 'csv' ? <Spinner /> : 'Export CSV'}
           </button>
           <label className={secondaryBtn + ' cursor-pointer' + (busy !== null ? ' pointer-events-none opacity-50' : '')}>
-            Import backup
+            {busy === 'import' ? <Spinner /> : 'Import backup'}
             <input
               type="file"
               accept="application/json"
@@ -168,8 +168,8 @@ export default function Settings() {
             Built {new Date(__BUILD_TIME__).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
           </p>
         </div>
-        <button className={secondaryBtn + ' !h-11 shrink-0 px-4'} disabled={busy !== null} onClick={() => run('refresh', resetAppCache)}>
-          Refresh files
+        <button className={secondaryBtn + ' !h-11 min-w-[116px] shrink-0 px-4'} disabled={busy !== null} onClick={() => run('refresh', resetAppCache)}>
+          {busy === 'refresh' ? <Spinner size={18} /> : 'Refresh files'}
         </button>
       </section>
 
@@ -186,7 +186,7 @@ export default function Settings() {
           })
         }
       >
-        Erase all data
+        {busy === 'erase' ? <Spinner /> : 'Erase all data'}
       </button>
 
       {msg && <p className="px-1 text-sm text-text-950/65">{msg}</p>}

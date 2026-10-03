@@ -123,7 +123,7 @@ export default function Dashboard() {
             <div className="mt-0.5 text-[17px] font-semibold">{php(totals.deposits)}</div>
           </div>
           <div>
-            <div className="flex items-center gap-1.5 text-xs text-withdraw"><TrendingDown size={16} strokeWidth={2.25} aria-hidden />Withdrawn</div>
+            <div className="flex items-center gap-1.5 text-xs text-danger"><TrendingDown size={16} strokeWidth={2.25} aria-hidden />Withdrawn</div>
             <div className="mt-0.5 text-[17px] font-semibold">{php(totals.withdrawals)}</div>
           </div>
         </div>

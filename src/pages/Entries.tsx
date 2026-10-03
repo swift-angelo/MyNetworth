@@ -2,7 +2,7 @@ import { Check, Plus, Receipt, StickyNote } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useEntryDrawer } from '../components/EntryDrawer'
 import SwipeRow from '../components/SwipeRow'
-import { EmptyState, InstitutionLogo, PageTitle } from '../components/ui'
+import { EmptyState, InstitutionLogo, PageTitle, Spinner, pause } from '../components/ui'
 import { colorFor } from '../data/institutions'
 import { db } from '../db/db'
 import { useData } from '../hooks/useData'
@@ -16,7 +16,8 @@ export default function Entries() {
   const [swipeId, setSwipeId] = useState<number | null>(null) // entry swiped open to reveal delete
   const [editingId, setEditingId] = useState<number | null>(null)
   const [draft, setDraft] = useState('')
-  const [flashId, setFlashId] = useState<number | null>(null) // entry whose note was just saved (shows a check)
+  const [flashId, setFlashId] = useState<number | null>(null) // entry whose note is being saved (spinner, then a check)
+  const [saved, setSaved] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
   const instById = new Map(institutions.map((i) => [i.id!, i]))
@@ -38,11 +39,13 @@ export default function Entries() {
   async function onSaveNote(id: number) {
     if (flashId !== null) return
     setFlashId(id)
-    await persistNote(id)
+    await Promise.all([persistNote(id), pause()])
+    setSaved(true)
     setTimeout(() => {
       setEditingId(null)
       setOpenId(null)
       setFlashId(null)
+      setSaved(false)
     }, 600)
   }
 
@@ -217,12 +220,12 @@ export default function Entries() {
                               type="button"
                               className={
                                 'flex h-10 min-w-[84px] items-center justify-center rounded-lg bg-primary-500 px-5 text-sm font-semibold text-on-primary transition active:scale-90 ' +
-                                (flashId === e.id ? 'scale-105 shadow-[0_0_18px_color-mix(in_srgb,var(--primary-500)_60%,transparent)]' : '')
+                                (flashId === e.id && saved ? 'scale-105 shadow-[0_0_18px_color-mix(in_srgb,var(--primary-500)_60%,transparent)]' : '')
                               }
                               disabled={flashId !== null}
                               onClick={() => onSaveNote(e.id!)}
                             >
-                              {flashId === e.id ? <Check key="ok" size={20} strokeWidth={3} className="pop" /> : 'Save'}
+                              {flashId === e.id ? saved ? <Check key="ok" size={20} strokeWidth={3} className="pop" /> : <Spinner size={18} /> : 'Save'}
                             </button>
                           </div>
                         )}
