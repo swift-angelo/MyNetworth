@@ -1,5 +1,5 @@
 import { ArrowLeft, ExternalLink, Loader2 } from 'lucide-react'
-import { Fragment } from 'react'
+import { Fragment, useRef } from 'react'
 import { useArticle, type ArticleBlock } from '../lib/article'
 import type { NewsItem } from '../lib/news'
 import { timeAgo } from '../lib/time'
@@ -51,6 +51,20 @@ function Blocks({ blocks }: { blocks: ArticleBlock[] }) {
 export default function ArticleReader({ item, shown, onClose }: { item: NewsItem; shown: boolean; onClose: () => void }) {
   useModalLock(onClose)
   const { status, article } = useArticle(item.url)
+  const touch = useRef<{ x: number; y: number; t: number } | null>(null)
+
+  // A quick, mostly horizontal swipe closes the reader and returns to the page underneath
+  const onTouchStart = (e: React.TouchEvent) => {
+    touch.current = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : null
+  }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const s = touch.current
+    touch.current = null
+    if (!s) return
+    const dx = e.changedTouches[0].clientX - s.x
+    const dy = e.changedTouches[0].clientY - s.y
+    if (Date.now() - s.t < 600 && Math.abs(dx) >= 60 && Math.abs(dx) >= Math.abs(dy) * 1.5) onClose()
+  }
 
   return (
     <Overlay>
@@ -58,6 +72,8 @@ export default function ArticleReader({ item, shown, onClose }: { item: NewsItem
         role="dialog"
         aria-modal="true"
         aria-label={`Article from ${item.source}`}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
         className={
           'reader-bg fixed inset-0 z-30 flex flex-col transition-transform duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)] ' +
           (shown ? 'translate-x-0' : 'translate-x-full')
