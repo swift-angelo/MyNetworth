@@ -1,13 +1,12 @@
-import { CalendarDays, Check, X } from 'lucide-react'
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { CalendarDays, Check } from 'lucide-react'
+import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
 import { colorFor } from '../data/institutions'
 import { db } from '../db/db'
 import { CATEGORY_LABELS, CURRENCIES, type Category, type EntryType } from '../db/schema'
 import { useData } from '../hooks/useData'
 import { formatAmountInput, toMinor } from '../lib/money'
+import { Sheet, useSheetState } from './Sheet'
 import { Field, InstitutionLogo, Segmented, SelectInput, btnCls, controlCls, inputCls, today } from './ui'
-
-const CLOSE_MS = 320
 
 type DrawerApi = { openDrawer: (type?: EntryType) => void }
 const DrawerContext = createContext<DrawerApi>({ openDrawer: () => {} })
@@ -17,31 +16,23 @@ export const useEntryDrawer = () => useContext(DrawerContext)
 
 /** Holds the drawer so any screen's Deposit / Withdraw / Add button can open it without navigating. */
 export function EntryDrawerProvider({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false) // in the page
-  const [shown, setShown] = useState(false) // slid up (false while sliding away)
+  const sheet = useSheetState()
   const [preset, setPreset] = useState<EntryType>('deposit')
   const [session, setSession] = useState(0) // a fresh form on every open
-  const timer = useRef<number | undefined>(undefined)
 
-  const openDrawer = useCallback((type: EntryType = 'deposit') => {
-    window.clearTimeout(timer.current)
-    setPreset(type)
-    setSession((n) => n + 1)
-    setMounted(true)
-    // two frames so the sheet is painted off-screen first, then slides in
-    requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)))
-  }, [])
-
-  const close = useCallback(() => {
-    setShown(false)
-    window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => setMounted(false), CLOSE_MS)
-  }, [])
+  const openDrawer = useCallback(
+    (type: EntryType = 'deposit') => {
+      setPreset(type)
+      setSession((n) => n + 1)
+      sheet.open()
+    },
+    [sheet.open], // eslint-disable-line react-hooks/exhaustive-deps
+  )
 
   return (
     <DrawerContext.Provider value={{ openDrawer }}>
       {children}
-      {mounted && <EntryDrawer key={session} shown={shown} initialType={preset} onClose={close} />}
+      {sheet.mounted && <EntryDrawer key={session} shown={sheet.shown} initialType={preset} onClose={sheet.close} />}
     </DrawerContext.Provider>
   )
 }
@@ -63,26 +54,6 @@ function EntryDrawer({ shown, initialType, onClose }: { shown: boolean; initialT
   const instById = new Map(institutions.map((i) => [i.id!, i]))
   const sorted = [...institutions].sort((a, b) => a.name.localeCompare(b.name))
   const selected = institutionId && institutionId !== 'new' ? instById.get(Number(institutionId)) : undefined
-
-  // Behind the drawer: freeze the page's scrolling and keep it out of reach of taps and focus.
-  useEffect(() => {
-    const page = document.getElementById('scroll-root')
-    if (!page) return
-    page.style.overflow = 'hidden'
-    page.inert = true
-    return () => {
-      page.style.overflow = ''
-      page.inert = false
-    }
-  }, [])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !saving) onClose()
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [onClose, saving])
 
   async function add(e: React.FormEvent) {
     e.preventDefault()
@@ -124,31 +95,7 @@ function EntryDrawer({ shown, initialType, onClose }: { shown: boolean; initialT
   }
 
   return (
-    <div className="fixed inset-0 z-30" role="dialog" aria-modal="true" aria-label={type === 'deposit' ? 'Add deposit' : 'Add withdrawal'}>
-      <div
-        className={'absolute inset-0 bg-[#041801]/40 backdrop-blur-sm transition-opacity duration-300 ' + (shown ? 'opacity-100' : 'opacity-0')}
-        onClick={() => !saving && onClose()}
-      />
-      <div
-        className={
-          'sheet absolute inset-x-0 bottom-0 mx-auto max-h-[92dvh] max-w-2xl overflow-y-auto overscroll-contain rounded-t-[22px] px-5 pb-[max(env(safe-area-inset-bottom),20px)] transition-transform duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)] ' +
-          (shown ? 'translate-y-0' : 'translate-y-full')
-        }
-      >
-        <div className="mx-auto mt-2.5 h-1.5 w-10 rounded-full bg-text-950/20" />
-        <div className="flex items-center justify-between pb-2 pt-1">
-          <h2 className="pl-1 text-xl font-bold tracking-tight">{type === 'deposit' ? 'Add deposit' : 'Add withdrawal'}</h2>
-          <button
-            type="button"
-            aria-label="Close"
-            disabled={saving}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-text-950/70 transition active:scale-90 active:bg-text-950/10 disabled:opacity-40"
-            onClick={onClose}
-          >
-            <X size={22} />
-          </button>
-        </div>
-
+    <Sheet shown={shown} onClose={onClose} locked={saving} label={type === 'deposit' ? 'Add deposit' : 'Add withdrawal'}>
         <form onSubmit={add} className="grid min-w-0 gap-3 pb-1">
           <Segmented
             className="bg-text-950/[0.08]"
@@ -284,7 +231,6 @@ function EntryDrawer({ shown, initialType, onClose }: { shown: boolean; initialT
             )}
           </button>
         </form>
-      </div>
-    </div>
+    </Sheet>
   )
 }

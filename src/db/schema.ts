@@ -52,4 +52,6 @@ export interface FxRate {
   currency: string
   phpPerUnit: number
   updatedAt: string
+  /** true once the rate came from the live source; the built-in defaults are only rough estimates */
+  live?: boolean
 }

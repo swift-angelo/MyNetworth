@@ -2,6 +2,7 @@ import { ArrowDownToLine, ArrowUpFromLine, Wallet } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useEntryDrawer } from '../components/EntryDrawer'
+import NewsSection from '../components/NewsSection'
 import { AppHeader, EmptyState, InstitutionLogo, PillGroup } from '../components/ui'
 import { SEED_INSTITUTIONS, colorFor } from '../data/institutions'
 import { logoFor } from '../data/logos'
@@ -189,7 +190,8 @@ export default function Dashboard() {
           </li>
         ))}
       </ul>
-      <p className="px-1 text-xs text-text-950/50">Foreign-currency entries are converted to PHP using the rates in Settings.</p>
+      <NewsSection />
+      <p className="px-1 text-xs text-text-950/50">Foreign-currency entries are converted to PHP using live exchange rates.</p>
     </div>
   )
 }

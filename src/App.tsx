@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { EntryDrawerProvider } from './components/EntryDrawer'
 import { seedIfEmpty } from './db/db'
+import { refreshRates } from './lib/fx'
 import Dashboard from './pages/Dashboard'
 import Entries from './pages/Entries'
 import Settings from './pages/Settings'
@@ -76,6 +77,22 @@ export default function App() {
       .then(() => setReady(true))
       .catch((e) => setError(String(e?.message ?? e)))
   }, [])
+
+  // Live exchange rates: on every open, whenever the app comes back to the foreground, and when the connection returns.
+  useEffect(() => {
+    if (!ready) return
+    refreshRates()
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshRates()
+    }
+    const onOnline = () => refreshRates({ force: true })
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('online', onOnline)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('online', onOnline)
+    }
+  }, [ready])
 
   const [slow, setSlow] = useState(false)
   useEffect(() => {

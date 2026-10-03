@@ -1,9 +1,12 @@
+import { RefreshCw } from 'lucide-react'
 import { useState } from 'react'
-import { PageTitle, Segmented, btnCls, inputCls } from '../components/ui'
+import { PageTitle, Segmented, btnCls } from '../components/ui'
 import { resetAppCache } from '../components/ErrorBoundary'
-import { db, exportAll, importAll, wipeAll } from '../db/db'
+import { exportAll, importAll, wipeAll } from '../db/db'
 import { useData } from '../hooks/useData'
+import { refreshRates, useFxStatus } from '../lib/fx'
 import { getThemePref, setThemePref, type ThemePref } from '../lib/theme'
+import { timeAgo } from '../lib/time'
 
 function download(name: string, content: string, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }))
@@ -14,6 +17,9 @@ function download(name: string, content: string, type: string) {
   URL.revokeObjectURL(url)
 }
 
+/** 62.6096 -> "62.61", 0.3965 -> "0.3965": two decimals for big rates, up to four (trailing zeros trimmed) for small ones. */
+const fmtRate = (r: number) => (r >= 10 ? r.toFixed(2) : String(Number(r.toFixed(4))))
+
 const secondaryBtn =
   'inline-flex h-12 items-center justify-center rounded-[10px] border border-text-950/15 bg-text-950/[0.06] text-sm font-semibold text-text-950 backdrop-blur-md transition active:scale-[0.97] active:bg-text-950/15 disabled:pointer-events-none disabled:opacity-50'
 
@@ -21,7 +27,7 @@ export default function Settings() {
   const { fx, institutions, entries } = useData()
   const [msg, setMsg] = useState('')
   const [theme, setTheme] = useState<ThemePref>(getThemePref())
-  const [edits, setEdits] = useState<Record<string, string>>({})
+  const fxStatus = useFxStatus()
   const [busy, setBusy] = useState<string | null>(null)
 
   /** Runs one action at a time; every button is disabled until it finishes. */
@@ -33,17 +39,6 @@ export default function Settings() {
     } finally {
       setBusy(null)
     }
-  }
-
-  async function saveRate(currency: string) {
-    const v = parseFloat(edits[currency])
-    if (!(v > 0)) return setMsg('Rate must be a positive number')
-    await db.fxRates.put({ currency, phpPerUnit: v, updatedAt: new Date().toISOString() })
-    setEdits((s) => {
-      const { [currency]: _, ...rest } = s
-      return rest
-    })
-    setMsg(`Saved ${currency} rate`)
   }
 
   function exportCsv() {
@@ -60,10 +55,25 @@ export default function Settings() {
       if (!confirm('Importing replaces ALL current data. Continue?')) return
       await importAll(JSON.parse(await file.text()))
       setMsg('Backup imported')
+      refreshRates({ force: true })
     } catch (e) {
       setMsg('Import failed: ' + (e as Error).message)
     }
   }
+
+  const rates = fx.filter((r) => r.currency !== 'PHP').sort((a, b) => a.currency.localeCompare(b.currency))
+  const liveTimes = rates.filter((r) => r.live).map((r) => new Date(r.updatedAt).getTime())
+  const lastLive = liveTimes.length ? Math.max(...liveTimes) : null
+  const rateStatus =
+    fxStatus === 'loading'
+      ? 'Updating live rates…'
+      : lastLive === null
+        ? fxStatus === 'error'
+          ? "Couldn't reach the rate service. Using built-in estimates."
+          : 'Estimated rates. Live rates load when you are online.'
+        : fxStatus === 'error'
+          ? `Offline. Using rates from ${timeAgo(lastLive)}.`
+          : `Live rates, updated ${timeAgo(lastLive)}`
 
   return (
     <div className="space-y-3">
@@ -100,34 +110,38 @@ export default function Settings() {
         </div>
       </section>
 
-      <section className="glass rounded-[16px] px-4 pb-2 pt-4">
-        <h2 className="text-[15px] font-semibold">Exchange rates</h2>
-        <p className="mt-1 text-[13px] text-text-950/65">PHP per 1 unit. Used to total foreign-currency entries.</p>
-        <div className="mt-2">
-          {fx
-            .filter((r) => r.currency !== 'PHP')
-            .map((r) => (
-              <div key={r.currency} className="flex h-[58px] items-center justify-between gap-2 border-t border-text-950/10">
-                <span className="text-[15px] font-semibold">{r.currency}</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    aria-label={`${r.currency} rate`}
-                    className={inputCls + ' !min-h-11 !w-[104px] !rounded-lg !px-3 text-right !text-[15px]'}
-                    inputMode="decimal"
-                    value={edits[r.currency] ?? String(r.phpPerUnit)}
-                    onChange={(e) => setEdits((s) => ({ ...s, [r.currency]: e.target.value }))}
-                  />
-                  <button
-                    className={secondaryBtn + ' !h-11 px-4 disabled:opacity-40'}
-                    onClick={() => run('rate-' + r.currency, () => saveRate(r.currency))}
-                    disabled={busy !== null || edits[r.currency] === undefined}
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            ))}
+      <section className="glass rounded-[16px] px-4 pb-1 pt-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-[15px] font-semibold">Exchange rates</h2>
+            <p className="mt-1 text-[13px] leading-snug text-text-950/65" aria-live="polite">
+              {rateStatus}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Refresh exchange rates"
+            className={secondaryBtn + ' !h-11 !w-11 shrink-0'}
+            disabled={busy !== null || fxStatus === 'loading'}
+            onClick={() => run('fx', async () => void (await refreshRates({ force: true })))}
+          >
+            <RefreshCw size={18} className={fxStatus === 'loading' ? 'animate-spin' : ''} />
+          </button>
         </div>
+        <div className="mt-2">
+          {rates.map((r) => (
+            <div key={r.currency} className="flex h-12 items-center justify-between border-t border-text-950/10">
+              <span className="text-[15px] font-semibold">1 {r.currency}</span>
+              <span className="text-[15px] tabular-nums">₱{fmtRate(r.phpPerUnit)}</span>
+            </div>
+          ))}
+        </div>
+        <p className="border-t border-text-950/10 py-3 text-xs text-text-950/55">
+          Rates by{' '}
+          <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer" className="underline">
+            ExchangeRate-API
+          </a>
+        </p>
       </section>
 
       <section className="glass rounded-[16px] p-4">
@@ -167,6 +181,7 @@ export default function Settings() {
             if (confirm('Erase ALL data? This cannot be undone.')) {
               await wipeAll()
               setMsg('All data erased')
+              refreshRates({ force: true })
             }
           })
         }

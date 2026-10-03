@@ -23,17 +23,17 @@ const PALETTE = ['#11f20d', '#0dc4f2', '#40f53d', '#3dd0f5', '#70f76e', '#6edcf7
 
 export const colorFor = (index: number) => PALETTE[index % PALETTE.length]
 
-/** Rough default FX rates (PHP per 1 unit). Users should update these in Settings. */
+/** Rough FX rates (PHP per 1 unit) used only until the first live update succeeds, e.g. a first launch with no connection. */
 export const DEFAULT_FX: Record<string, number> = {
   PHP: 1,
-  USD: 58,
-  EUR: 63,
-  GBP: 74,
-  SGD: 43,
-  AUD: 38,
-  CAD: 42,
-  JPY: 0.39,
-  HKD: 7.4,
-  AED: 15.8,
-  SAR: 15.5,
+  USD: 62.6,
+  EUR: 70.4,
+  GBP: 82.7,
+  SGD: 48.9,
+  AUD: 43.5,
+  CAD: 43.9,
+  JPY: 0.4,
+  HKD: 8,
+  AED: 17,
+  SAR: 16.7,
 }
