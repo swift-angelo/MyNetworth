@@ -60,4 +60,5 @@
   --color-withdraw: var(--withdraw);
   --color-muted: var(--muted);
   --color-tab-line: var(--tab-line);
+  --color-danger: var(--danger);
 }

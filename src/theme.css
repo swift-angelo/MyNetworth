@@ -65,6 +65,7 @@
   /* Semantic roles built from the palette */
   --on-primary: var(--primary-950);
   --tab-line: var(--primary-700);
+  --danger: #dc2626;
   --link: var(--primary-800);
   --deposit: var(--primary-800);
   --withdraw: var(--secondary-700);
@@ -146,6 +147,7 @@
   /* Semantic roles built from the palette */
   --on-primary: var(--primary-50);
   --tab-line: var(--primary-500);
+  --danger: #f87171;
   --link: var(--primary-600);
   --deposit: var(--primary-600);
   --withdraw: var(--secondary-600);

@@ -105,8 +105,7 @@ export default function Dashboard() {
       <AppHeader />
 
       <section className="rounded-[28px] border border-text-950/15 bg-gradient-to-br from-primary-300/35 via-primary-200/20 to-text-950/10 bg-clip-padding px-5 pb-5 pt-[18px] text-text-950 shadow-[inset_0_1px_0_var(--glass-highlight),0_12px_32px_var(--glass-shadow)] backdrop-blur-xl backdrop-saturate-150">
-        <div className="text-[13px] text-text-950/80">Total put in, net</div>
-        <div className="mt-1 text-[46px] font-bold leading-[1.1] tracking-tighter">
+        <div className="text-[46px] font-bold leading-[1.1] tracking-tighter">
           ₱{whole}
           {cents !== '00' && <span className="text-text-950/60">.{cents}</span>}
         </div>

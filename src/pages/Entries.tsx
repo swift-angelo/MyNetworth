@@ -1,5 +1,5 @@
-import { Receipt, StickyNote } from 'lucide-react'
-import { useState } from 'react'
+import { CalendarDays, Receipt, StickyNote } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import SwipeRow from '../components/SwipeRow'
 import { EmptyState, Field, InstitutionLogo, PageTitle, Segmented, SelectInput, btnCls, controlCls, inputCls, today } from '../components/ui'
@@ -64,6 +64,11 @@ export default function Entries() {
     setAmount('')
     setNote('')
   }
+
+  // The editor opens near the bottom of the list; bring it (and its Save button) clear of the tab bar.
+  useEffect(() => {
+    if (editingId !== null) document.getElementById('note-editor')?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }, [editingId])
 
   async function saveNote(id: number) {
     const next = draft.trim()
@@ -173,7 +178,26 @@ export default function Entries() {
           </Field>
 
           <Field label="Date">
-            <input type="date" className={controlCls} value={date} onChange={(e) => setDate(e.target.value)} />
+            <div className={controlCls + ' relative flex items-center gap-2.5 focus-within:border-primary-700'}>
+              <CalendarDays size={18} className="shrink-0 text-text-950/60" />
+              <span className="text-base">
+                {date ? new Date(date + 'T00:00:00').toLocaleDateString('en-PH', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Pick a date'}
+              </span>
+              <input
+                type="date"
+                aria-label="Date"
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                onClick={(e) => {
+                  try {
+                    e.currentTarget.showPicker?.()
+                  } catch {
+                    // some browsers only allow this from certain gestures; the native tap still works
+                  }
+                }}
+              />
+            </div>
           </Field>
 
           <Field label="Note">
@@ -288,15 +312,32 @@ export default function Entries() {
                 {openId === e.id && e.note.trim() !== '' && (
                   <div className="mb-3 ml-12">
                     {editingId === e.id ? (
-                      <textarea
-                        autoFocus
-                        aria-label="Edit note"
-                        className="block min-h-24 w-full resize-none rounded-xl border border-primary-700 bg-text-950/[0.06] px-3 py-2.5 text-base leading-snug text-text-950 outline-none"
-                        value={draft}
-                        onChange={(ev) => setDraft(ev.target.value)}
-                        onFocus={(ev) => ev.currentTarget.setSelectionRange(ev.currentTarget.value.length, ev.currentTarget.value.length)}
-                        onBlur={() => saveNote(e.id!)}
-                      />
+                      <div id="note-editor">
+                        <textarea
+                          autoFocus
+                          aria-label="Edit note"
+                          className="block min-h-24 w-full resize-none rounded-xl border border-primary-700 bg-text-950/[0.06] px-3 py-2.5 text-base leading-snug text-text-950 outline-none"
+                          value={draft}
+                          onChange={(ev) => setDraft(ev.target.value)}
+                          onFocus={(ev) => ev.currentTarget.setSelectionRange(ev.currentTarget.value.length, ev.currentTarget.value.length)}
+                        />
+                        <div className="mt-2 flex justify-end gap-2">
+                          <button
+                            type="button"
+                            className="h-10 rounded-xl border border-text-950/15 bg-text-950/[0.06] px-4 text-sm font-semibold text-text-950 transition active:scale-[0.97]"
+                            onClick={() => setEditingId(null)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            className="h-10 rounded-xl bg-primary-500 px-5 text-sm font-semibold text-on-primary transition active:scale-[0.97]"
+                            onClick={() => saveNote(e.id!)}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
                     ) : (
                       <button
                         type="button"

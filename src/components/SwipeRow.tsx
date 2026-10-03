@@ -1,11 +1,12 @@
 import { Trash2 } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
 
-const ACTION_WIDTH = 84
+const ACTION_WIDTH = 56
 
 /**
- * A row that slides left to reveal a delete button (drag with a finger or mouse).
- * `touch-action: pan-y` keeps vertical scrolling native, so only a clearly horizontal drag is treated as a swipe.
+ * A row that reveals a delete button on a left swipe (finger or mouse). The row's content is not moved:
+ * the revealed button takes space from the right edge, so the name on the left stays put and just truncates.
+ * `touch-action: pan-y` keeps vertical scrolling native, so only a clearly horizontal drag counts as a swipe.
  */
 export default function SwipeRow({
   open,
@@ -20,8 +21,8 @@ export default function SwipeRow({
 }) {
   const [drag, setDrag] = useState<number | null>(null)
   const start = useRef<{ x: number; y: number; base: number; moved: boolean } | null>(null)
-  const base = open ? -ACTION_WIDTH : 0
-  const x = drag ?? base
+  const base = open ? ACTION_WIDTH : 0
+  const reveal = drag ?? base // how many px of the delete button are showing
 
   function down(e: React.PointerEvent) {
     start.current = { x: e.clientX, y: e.clientY, base, moved: false }
@@ -37,52 +38,46 @@ export default function SwipeRow({
       s.moved = true
       e.currentTarget.setPointerCapture(e.pointerId)
     }
-    setDrag(Math.min(0, Math.max(-ACTION_WIDTH, s.base + dx)))
+    setDrag(Math.min(ACTION_WIDTH, Math.max(0, s.base - dx)))
   }
 
   function up() {
     const s = start.current
     start.current = null
-    if (s?.moved) onOpenChange((drag ?? base) < -ACTION_WIDTH / 2)
+    if (s?.moved) onOpenChange((drag ?? base) > ACTION_WIDTH / 2)
     setDrag(null)
   }
 
   return (
-    <div className="overflow-hidden">
+    <div
+      className="relative"
+      style={{ touchAction: 'pan-y' }}
+      onPointerDown={down}
+      onPointerMove={move}
+      onPointerUp={up}
+      onPointerCancel={up}
+    >
+      {/* While swiped open, a tap on the row just closes it instead of triggering the row's own action. */}
       <div
-        className="flex"
-        style={{
-          width: `calc(100% + ${ACTION_WIDTH}px)`,
-          transform: `translateX(${x}px)`,
-          transition: drag === null ? 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
-          touchAction: 'pan-y',
+        style={{ paddingRight: reveal, transition: drag === null ? 'padding 0.25s cubic-bezier(0.22, 1, 0.36, 1)' : 'none' }}
+        onClickCapture={(e) => {
+          if (open) {
+            e.stopPropagation()
+            onOpenChange(false)
+          }
         }}
-        onPointerDown={down}
-        onPointerMove={move}
-        onPointerUp={up}
-        onPointerCancel={up}
       >
-        {/* While swiped open, a tap on the row just closes it instead of triggering the row's own action. */}
-        <div
-          className="min-w-0 flex-1"
-          onClickCapture={(e) => {
-            if (open) {
-              e.stopPropagation()
-              onOpenChange(false)
-            }
-          }}
-        >
-          {children}
-        </div>
+        {children}
+      </div>
+      <div className="absolute inset-y-0 right-0 flex items-center justify-center overflow-hidden" style={{ width: reveal }}>
         <button
           type="button"
           aria-label="Delete entry"
           tabIndex={open ? 0 : -1}
-          className="my-2 flex shrink-0 items-center justify-center rounded-2xl bg-withdraw text-background-50"
-          style={{ width: ACTION_WIDTH - 12, marginLeft: 6, marginRight: 6 }}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-danger/15 text-danger transition active:scale-95"
           onClick={onDelete}
         >
-          <Trash2 size={22} />
+          <Trash2 size={20} />
         </button>
       </div>
     </div>

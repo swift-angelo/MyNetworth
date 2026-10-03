@@ -67,9 +67,45 @@ body::before {
   animation: rise-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
+/* Tab changes: the old page slides out the way you are leaving, the new one slides in from the other side.
+   --dir is +1 when moving to a tab on the right and -1 to the left; --sy keeps the old page where it was scrolled. */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(var(--dir, 1) * 40px), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes slide-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, var(--sy, 0px), 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(calc(var(--dir, 1) * -40px), var(--sy, 0px), 0);
+  }
+}
+.page-in {
+  animation: slide-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.page-out {
+  position: absolute;
+  inset: 0 0 auto 0;
+  pointer-events: none;
+  animation: slide-out 0.24s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .page-enter {
+  .page-enter,
+  .page-in {
     animation: none;
+  }
+  .page-out {
+    display: none;
   }
   * {
     transition-duration: 0.01ms !important;
