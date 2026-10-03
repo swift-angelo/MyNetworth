@@ -1,4 +1,4 @@
-import { CalendarDays, Receipt, StickyNote } from 'lucide-react'
+import { CalendarDays, Check, Receipt, StickyNote } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import SwipeRow from '../components/SwipeRow'
@@ -26,6 +26,8 @@ export default function Entries() {
   const [swipeId, setSwipeId] = useState<number | null>(null) // entry swiped open to reveal delete
   const [editingId, setEditingId] = useState<number | null>(null)
   const [draft, setDraft] = useState('')
+  const [flashId, setFlashId] = useState<number | null>(null) // entry whose note was just saved (shows a check)
+  const [justAdded, setJustAdded] = useState(false)
 
   const instById = new Map(institutions.map((i) => [i.id!, i]))
   const sorted = [...institutions].sort((a, b) => a.name.localeCompare(b.name))
@@ -63,6 +65,8 @@ export default function Entries() {
     })
     setAmount('')
     setNote('')
+    setJustAdded(true)
+    setTimeout(() => setJustAdded(false), 1300)
   }
 
   // The editor opens near the bottom of the list; bring it (and its Save button) clear of the tab bar.
@@ -70,12 +74,28 @@ export default function Entries() {
     if (editingId !== null) document.getElementById('note-editor')?.scrollIntoView({ block: 'center', behavior: 'smooth' })
   }, [editingId])
 
-  async function saveNote(id: number) {
+  /** Writes the edited note (only if it really changed, so the "last edited" time stays honest). */
+  async function persistNote(id: number) {
     const next = draft.trim()
-    setEditingId(null)
-    if (next === (entries.find((x) => x.id === id)?.note ?? '')) return // unchanged: keep the old timestamp
+    if (next === (entries.find((x) => x.id === id)?.note ?? '')) return
     await db.entries.update(id, { note: next, noteUpdatedAt: next ? new Date().toISOString() : undefined })
-    if (next === '') setOpenId(null) // nothing left to show
+  }
+
+  /** Save: a check pops on the button, then the editor and the note fold away. */
+  async function onSaveNote(id: number) {
+    if (flashId !== null) return
+    setFlashId(id)
+    await persistNote(id)
+    setTimeout(() => {
+      setEditingId(null)
+      setOpenId(null)
+      setFlashId(null)
+    }, 600)
+  }
+
+  function onCancelNote() {
+    setEditingId(null)
+    setOpenId(null)
   }
 
   const shown = entries
@@ -209,7 +229,17 @@ export default function Entries() {
             />
           </Field>
 
-          <button className={btnCls + ' mt-0.5'}>{type === 'deposit' ? 'Add deposit' : 'Add withdrawal'}</button>
+          <button className={btnCls + ' mt-0.5'}>
+            {justAdded ? (
+              <span key="added" className="pop inline-flex items-center gap-2">
+                <Check size={22} strokeWidth={3} /> Added
+              </span>
+            ) : type === 'deposit' ? (
+              'Add deposit'
+            ) : (
+              'Add withdrawal'
+            )}
+          </button>
         </form>
         {error && <p className="mt-3 text-sm text-withdraw">{error}</p>}
       </section>
@@ -309,54 +339,65 @@ export default function Entries() {
                     )
                   })()}
                 </SwipeRow>
-                {openId === e.id && e.note.trim() !== '' && (
-                  <div className="mb-3 ml-12">
-                    {editingId === e.id ? (
-                      <div id="note-editor">
-                        <textarea
-                          autoFocus
-                          aria-label="Edit note"
-                          className="block min-h-24 w-full resize-none rounded-xl border border-primary-700 bg-text-950/[0.06] px-3 py-2.5 text-base leading-snug text-text-950 outline-none"
-                          value={draft}
-                          onChange={(ev) => setDraft(ev.target.value)}
-                          onFocus={(ev) => ev.currentTarget.setSelectionRange(ev.currentTarget.value.length, ev.currentTarget.value.length)}
-                        />
-                        <div className="mt-2 flex justify-end gap-2">
+                {e.note.trim() !== '' && (
+                  <div
+                    className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                    style={{ gridTemplateRows: openId === e.id ? '1fr' : '0fr' }}
+                    inert={openId !== e.id}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mb-3 ml-12">
+                        {editingId === e.id ? (
+                          <textarea
+                            autoFocus
+                            aria-label="Edit note"
+                            className="block min-h-24 w-full resize-none rounded-xl border border-primary-700 bg-text-950/[0.06] px-3 py-2.5 text-base leading-snug text-text-950 outline-none"
+                            value={draft}
+                            onChange={(ev) => setDraft(ev.target.value)}
+                            onFocus={(ev) => ev.currentTarget.setSelectionRange(ev.currentTarget.value.length, ev.currentTarget.value.length)}
+                          />
+                        ) : (
                           <button
                             type="button"
-                            className="h-10 rounded-xl border border-text-950/15 bg-text-950/[0.06] px-4 text-sm font-semibold text-text-950 transition active:scale-[0.97]"
-                            onClick={() => setEditingId(null)}
+                            aria-label="Edit note"
+                            className="block w-full whitespace-pre-wrap break-words rounded-xl bg-text-950/[0.06] px-3 py-2.5 text-left text-sm leading-snug"
+                            onClick={() => {
+                              setDraft(e.note)
+                              setEditingId(e.id!)
+                            }}
                           >
-                            Cancel
+                            {e.note}
                           </button>
-                          <button
-                            type="button"
-                            className="h-10 rounded-xl bg-primary-500 px-5 text-sm font-semibold text-on-primary transition active:scale-[0.97]"
-                            onClick={() => saveNote(e.id!)}
-                          >
-                            Save
-                          </button>
-                        </div>
+                        )}
+                        {e.noteUpdatedAt && (
+                          <p className="mt-1.5 px-1 text-[11px] text-text-950/55">
+                            Last edited{' '}
+                            {new Date(e.noteUpdatedAt).toLocaleString('en-PH', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                          </p>
+                        )}
+                        {editingId === e.id && (
+                          <div className="mt-2 flex justify-end gap-2">
+                            <button
+                              type="button"
+                              className="h-10 rounded-xl border border-text-950/15 bg-text-950/[0.06] px-4 text-sm font-semibold text-text-950 transition active:scale-90"
+                              onClick={onCancelNote}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              className={
+                                'flex h-10 min-w-[84px] items-center justify-center rounded-xl bg-primary-500 px-5 text-sm font-semibold text-on-primary transition active:scale-90 ' +
+                                (flashId === e.id ? 'scale-105 shadow-[0_0_18px_color-mix(in_srgb,var(--primary-500)_60%,transparent)]' : '')
+                              }
+                              onClick={() => onSaveNote(e.id!)}
+                            >
+                              {flashId === e.id ? <Check key="ok" size={20} strokeWidth={3} className="pop" /> : 'Save'}
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        aria-label="Edit note"
-                        className="block w-full whitespace-pre-wrap break-words rounded-xl bg-text-950/[0.06] px-3 py-2.5 text-left text-sm leading-snug"
-                        onClick={() => {
-                          setDraft(e.note)
-                          setEditingId(e.id!)
-                        }}
-                      >
-                        {e.note}
-                      </button>
-                    )}
-                    {e.noteUpdatedAt && (
-                      <p className="mt-1.5 px-1 text-[11px] text-text-950/55">
-                        Last edited{' '}
-                        {new Date(e.noteUpdatedAt).toLocaleString('en-PH', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                      </p>
-                    )}
+                    </div>
                   </div>
                 )}
               </li>

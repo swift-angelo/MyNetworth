@@ -1,6 +1,6 @@
 import { ArrowLeftRight, House, Settings2 } from 'lucide-react'
-import { useEffect, useLayoutEffect, useState, type CSSProperties } from 'react'
-import { HashRouter, NavLink, Route, Routes, useLocation, type Location } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { seedIfEmpty } from './db/db'
 import Dashboard from './pages/Dashboard'
 import Entries from './pages/Entries'
@@ -14,55 +14,19 @@ const links = [
 
 const tabIndex = (path: string) => Math.max(0, links.findIndex(([to]) => to === path))
 
-function AppRoutes({ location }: { location: Location }) {
-  return (
-    <Routes location={location}>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/entries" element={<Entries />} />
-      <Route path="/settings" element={<Settings />} />
-    </Routes>
-  )
-}
-
-/**
- * Slides between tabs: the page you leave slides out toward where you are going while the new one slides in
- * from that side (left/right follows the tab order). Pages are re-mounted per route, and scroll resets.
- */
-function SlideRoutes() {
+/** Re-mounts the page on every route change (via key) so its entrance fade replays, and resets scroll. */
+function AnimatedRoutes() {
   const location = useLocation()
-  const [current, setCurrent] = useState(location)
-  const [leaving, setLeaving] = useState<{ loc: Location; sy: number } | null>(null)
-  const [dir, setDir] = useState(1)
-  const [animate, setAnimate] = useState(false)
-
-  useLayoutEffect(() => {
-    if (location.pathname === current.pathname) {
-      setCurrent(location) // same page (e.g. only the query changed): just follow it
-      return
-    }
-    const scroller = document.getElementById('scroll-root')
-    const sy = -(scroller?.scrollTop ?? 0)
-    scroller?.scrollTo(0, 0)
-    setDir(tabIndex(location.pathname) > tabIndex(current.pathname) ? 1 : -1)
-    setLeaving({ loc: current, sy })
-    setCurrent(location)
-    setAnimate(true)
-    const t = setTimeout(() => setLeaving(null), 260)
-    return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location])
-
-  const vars = { '--dir': dir } as CSSProperties
+  useEffect(() => {
+    document.getElementById('scroll-root')?.scrollTo(0, 0)
+  }, [location.pathname])
   return (
-    <div className="relative">
-      {leaving && (
-        <div key={leaving.loc.pathname + '-out'} aria-hidden className="page-out" style={{ ...vars, '--sy': `${leaving.sy}px` } as CSSProperties}>
-          <AppRoutes location={leaving.loc} />
-        </div>
-      )}
-      <div key={current.pathname} className={animate ? 'page-in' : 'page-enter'} style={vars}>
-        <AppRoutes location={current} />
-      </div>
+    <div key={location.pathname} className="page-enter">
+      <Routes location={location}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/entries" element={<Entries />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
     </div>
   )
 }
@@ -137,7 +101,7 @@ export default function App() {
       <div className="relative flex h-dvh flex-col overflow-hidden">
       <main id="scroll-root" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
         <div className="mx-auto max-w-2xl space-y-3.5 px-5 pb-32 pt-[env(safe-area-inset-top)]">
-          <SlideRoutes />
+          <AnimatedRoutes />
         </div>
       </main>
       <TabBar />
