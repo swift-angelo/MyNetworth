@@ -27,16 +27,16 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, { 
       <div className="mx-auto max-w-md space-y-4 p-6 text-text-950">
         <h1 className="text-xl font-semibold">Something went wrong</h1>
         <p className="text-sm text-text-950/65">Your saved entries are safe. Send this message so it can be fixed:</p>
-        <pre className="whitespace-pre-wrap break-words rounded-xl bg-text-950/10 p-3 text-xs text-withdraw">
+        <pre className="whitespace-pre-wrap break-words rounded-lg bg-text-950/10 p-3 text-xs text-withdraw">
           {error.name}: {error.message}
           {'\n'}
           {(error.stack ?? '').split('\n').slice(1, 4).join('\n')}
         </pre>
         <div className="flex gap-3">
-          <button className="min-h-11 flex-1 rounded-xl bg-primary-500 font-semibold text-on-primary" onClick={() => location.reload()}>
+          <button className="min-h-11 flex-1 rounded-lg bg-primary-500 font-semibold text-on-primary" onClick={() => location.reload()}>
             Reload
           </button>
-          <button className="min-h-11 flex-1 rounded-xl border border-text-950/20 bg-text-950/10" onClick={resetAppCache}>
+          <button className="min-h-11 flex-1 rounded-lg border border-text-950/20 bg-text-950/10" onClick={resetAppCache}>
             Clear app cache
           </button>
         </div>

@@ -70,7 +70,7 @@ export default function Entries() {
       </div>
 
       {entries.length === 0 && (
-        <div className="glass rounded-3xl">
+        <div className="glass rounded-[16px]">
           <EmptyState
             icon={<Receipt size={30} strokeWidth={1.75} />}
             title="No entries yet"
@@ -105,7 +105,7 @@ export default function Entries() {
       {shown.length === 0 ? (
         <p className="py-6 text-center text-sm text-text-950/65">No entries for this one.</p>
       ) : (
-        <ul className="glass divide-y divide-text-950/10 rounded-3xl px-3.5">
+        <ul className="glass divide-y divide-text-950/10 rounded-[16px] px-3.5">
           {shown.map((e) => {
             const inst = instById.get(e.institutionId)
             return (
@@ -179,7 +179,7 @@ export default function Entries() {
                           <textarea
                             autoFocus
                             aria-label="Edit note"
-                            className="block min-h-24 w-full resize-none rounded-xl border border-primary-700 bg-text-950/[0.06] px-3 py-2.5 text-base leading-snug text-text-950 outline-none"
+                            className="block min-h-24 w-full resize-none rounded-lg border border-primary-700 bg-text-950/[0.06] px-3 py-2.5 text-base leading-snug text-text-950 outline-none"
                             value={draft}
                             onChange={(ev) => setDraft(ev.target.value)}
                             onFocus={(ev) => ev.currentTarget.setSelectionRange(ev.currentTarget.value.length, ev.currentTarget.value.length)}
@@ -188,7 +188,7 @@ export default function Entries() {
                           <button
                             type="button"
                             aria-label="Edit note"
-                            className="block w-full whitespace-pre-wrap break-words rounded-xl bg-text-950/[0.06] px-3 py-2.5 text-left text-sm leading-snug"
+                            className="block w-full whitespace-pre-wrap break-words rounded-lg bg-text-950/[0.06] px-3 py-2.5 text-left text-sm leading-snug"
                             onClick={() => {
                               setDraft(e.note)
                               setEditingId(e.id!)
@@ -207,7 +207,7 @@ export default function Entries() {
                           <div className="mt-2 flex justify-end gap-2">
                             <button
                               type="button"
-                              className="h-10 rounded-xl border border-text-950/15 bg-text-950/[0.06] px-4 text-sm font-semibold text-text-950 transition active:scale-90 disabled:opacity-50"
+                              className="h-10 rounded-lg border border-text-950/15 bg-text-950/[0.06] px-4 text-sm font-semibold text-text-950 transition active:scale-90 disabled:opacity-50"
                               disabled={flashId !== null}
                               onClick={onCancelNote}
                             >
@@ -216,7 +216,7 @@ export default function Entries() {
                             <button
                               type="button"
                               className={
-                                'flex h-10 min-w-[84px] items-center justify-center rounded-xl bg-primary-500 px-5 text-sm font-semibold text-on-primary transition active:scale-90 ' +
+                                'flex h-10 min-w-[84px] items-center justify-center rounded-lg bg-primary-500 px-5 text-sm font-semibold text-on-primary transition active:scale-90 ' +
                                 (flashId === e.id ? 'scale-105 shadow-[0_0_18px_color-mix(in_srgb,var(--primary-500)_60%,transparent)]' : '')
                               }
                               disabled={flashId !== null}

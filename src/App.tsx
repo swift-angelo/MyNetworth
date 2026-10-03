@@ -36,7 +36,7 @@ function TabBar() {
   const index = tabIndex(useLocation().pathname)
   return (
     <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-4 pb-[max(env(safe-area-inset-bottom),12px)]">
-      <div className="glass pointer-events-auto relative mx-auto grid max-w-md grid-cols-3 rounded-[30px] p-2">
+      <div className="glass pointer-events-auto relative mx-auto grid max-w-md grid-cols-3 rounded-[20px] p-2">
         {/* One indicator that glides to the active tab (inset from the edges so it stays inside the capsule) */}
         <span
           aria-hidden

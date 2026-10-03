@@ -77,7 +77,7 @@ export default function SwipeRow({
           aria-label="Delete entry"
           tabIndex={open ? 0 : -1}
           disabled={disabled}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-danger/15 text-danger transition active:scale-95 disabled:pointer-events-none disabled:opacity-40"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-danger/15 text-danger transition active:scale-95 disabled:pointer-events-none disabled:opacity-40"
           onClick={onDelete}
         >
           <Trash2 size={20} />

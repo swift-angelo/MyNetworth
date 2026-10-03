@@ -131,7 +131,7 @@ function EntryDrawer({ shown, initialType, onClose }: { shown: boolean; initialT
       />
       <div
         className={
-          'sheet absolute inset-x-0 bottom-0 mx-auto max-h-[92dvh] max-w-2xl overflow-y-auto overscroll-contain rounded-t-[32px] px-5 pb-[max(env(safe-area-inset-bottom),20px)] transition-transform duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)] ' +
+          'sheet absolute inset-x-0 bottom-0 mx-auto max-h-[92dvh] max-w-2xl overflow-y-auto overscroll-contain rounded-t-[22px] px-5 pb-[max(env(safe-area-inset-bottom),20px)] transition-transform duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)] ' +
           (shown ? 'translate-y-0' : 'translate-y-full')
         }
       >
@@ -214,7 +214,7 @@ function EntryDrawer({ shown, initialType, onClose }: { shown: boolean; initialT
           <Field label="Amount">
             <div
               className={
-                'flex h-[68px] items-center gap-2.5 rounded-2xl border-[1.5px] bg-text-950/[0.06] pl-3.5 pr-3 backdrop-blur-md ' +
+                'flex h-[68px] items-center gap-2.5 rounded-xl border-[1.5px] bg-text-950/[0.06] pl-3.5 pr-3 backdrop-blur-md ' +
                 (type === 'deposit' ? 'border-deposit' : 'border-withdraw')
               }
             >
@@ -227,7 +227,7 @@ function EntryDrawer({ shown, initialType, onClose }: { shown: boolean; initialT
               />
               <select
                 aria-label="Currency"
-                className="h-11 rounded-xl bg-text-950/[0.08] px-2.5 text-sm font-semibold text-text-950 outline-none"
+                className="h-11 rounded-lg bg-text-950/[0.08] px-2.5 text-sm font-semibold text-text-950 outline-none"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
               >

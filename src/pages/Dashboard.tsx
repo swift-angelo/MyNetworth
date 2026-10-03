@@ -13,7 +13,7 @@ import { formatMoney } from '../lib/money'
 const tooltipStyle = { background: 'var(--background-100)', border: '1px solid var(--glass-border)', borderRadius: 12, color: 'var(--text-950)' }
 const PH_CHIPS = ['GCash', 'Maya', 'BDO', 'BPI', 'GoTyme', 'Coins.ph', 'Wise', 'PayPal']
 
-const tileCls = 'glass flex h-[84px] flex-col items-center justify-center gap-1.5 rounded-[22px] text-[15px] font-semibold transition active:scale-[0.98]'
+const tileCls = 'glass flex h-[84px] flex-col items-center justify-center gap-1.5 rounded-[14px] text-[15px] font-semibold transition active:scale-[0.98]'
 
 function periodLabel(key: string, period: Period) {
   if (period === 'year') return key
@@ -67,7 +67,7 @@ export default function Dashboard() {
     return (
       <div className="space-y-3.5">
         <AppHeader />
-        <div className="glass mt-4 rounded-[30px]">
+        <div className="glass mt-4 rounded-[20px]">
           <EmptyState
             icon={<Wallet size={32} strokeWidth={1.75} />}
             title="Nothing tracked yet"
@@ -105,7 +105,7 @@ export default function Dashboard() {
     <div className="space-y-3.5">
       <AppHeader />
 
-      <section className="rounded-[28px] border border-text-950/15 bg-gradient-to-br from-primary-300/35 via-primary-200/20 to-text-950/10 bg-clip-padding px-5 pb-5 pt-[18px] text-text-950 shadow-[inset_0_1px_0_var(--glass-highlight),0_12px_32px_var(--glass-shadow)] backdrop-blur-xl backdrop-saturate-150">
+      <section className="rounded-[18px] border border-text-950/15 bg-gradient-to-br from-primary-300/35 via-primary-200/20 to-text-950/10 bg-clip-padding px-5 pb-5 pt-[18px] text-text-950 shadow-[inset_0_1px_0_var(--glass-highlight),0_12px_32px_var(--glass-shadow)] backdrop-blur-xl backdrop-saturate-150">
         <div className="text-[46px] font-bold leading-[1.1] tracking-tighter">
           ₱{whole}
           {cents !== '00' && <span className="text-text-950/60">.{cents}</span>}
@@ -133,7 +133,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      <section className="glass rounded-[26px] px-4 pb-3 pt-3.5">
+      <section className="glass rounded-[16px] px-4 pb-3 pt-3.5">
         <div className="flex items-center justify-between">
           <h2 className="text-[15px] font-semibold">Over time</h2>
           <PillGroup
@@ -179,7 +179,7 @@ export default function Dashboard() {
 
       <ul className="space-y-2">
         {rows.map((r) => (
-          <li key={r.name} className="glass flex h-[62px] items-center gap-3 rounded-[20px] px-3.5">
+          <li key={r.name} className="glass flex h-[62px] items-center gap-3 rounded-[14px] px-3.5">
             <InstitutionLogo name={r.name} color={r.color} />
             <div className="min-w-0 flex-1">
               <div className="truncate text-[15px] font-semibold">{r.name}</div>

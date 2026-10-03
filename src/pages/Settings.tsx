@@ -15,7 +15,7 @@ function download(name: string, content: string, type: string) {
 }
 
 const secondaryBtn =
-  'inline-flex h-12 items-center justify-center rounded-[14px] border border-text-950/15 bg-text-950/[0.06] text-sm font-semibold text-text-950 backdrop-blur-md transition active:scale-[0.97] active:bg-text-950/15 disabled:pointer-events-none disabled:opacity-50'
+  'inline-flex h-12 items-center justify-center rounded-[10px] border border-text-950/15 bg-text-950/[0.06] text-sm font-semibold text-text-950 backdrop-blur-md transition active:scale-[0.97] active:bg-text-950/15 disabled:pointer-events-none disabled:opacity-50'
 
 export default function Settings() {
   const { fx, institutions, entries } = useData()
@@ -69,24 +69,7 @@ export default function Settings() {
     <div className="space-y-3">
       <PageTitle>Settings</PageTitle>
 
-      <section className="glass rounded-[26px] p-4">
-        <h2 className="mb-3 text-[15px] font-semibold">Appearance</h2>
-        <Segmented
-          className="bg-text-950/[0.08]"
-          value={theme}
-          onChange={(v) => {
-            setTheme(v)
-            setThemePref(v)
-          }}
-          options={[
-            { value: 'light', label: 'Light' },
-            { value: 'dark', label: 'Dark' },
-            { value: 'system', label: 'System' },
-          ]}
-        />
-      </section>
-
-      <section className="glass rounded-[26px] p-4">
+      <section className="glass rounded-[16px] p-4">
         <h2 className="text-[15px] font-semibold">Backup</h2>
         <p className="mt-1 text-[13px] leading-snug text-text-950/65">Your data lives only on this phone. Export a copy now and then.</p>
         <button
@@ -117,7 +100,7 @@ export default function Settings() {
         </div>
       </section>
 
-      <section className="glass rounded-[26px] px-4 pb-2 pt-4">
+      <section className="glass rounded-[16px] px-4 pb-2 pt-4">
         <h2 className="text-[15px] font-semibold">Exchange rates</h2>
         <p className="mt-1 text-[13px] text-text-950/65">PHP per 1 unit. Used to total foreign-currency entries.</p>
         <div className="mt-2">
@@ -129,7 +112,7 @@ export default function Settings() {
                 <div className="flex items-center gap-2">
                   <input
                     aria-label={`${r.currency} rate`}
-                    className={inputCls + ' !min-h-11 !w-[104px] !rounded-xl !px-3 text-right !text-[15px]'}
+                    className={inputCls + ' !min-h-11 !w-[104px] !rounded-lg !px-3 text-right !text-[15px]'}
                     inputMode="decimal"
                     value={edits[r.currency] ?? String(r.phpPerUnit)}
                     onChange={(e) => setEdits((s) => ({ ...s, [r.currency]: e.target.value }))}
@@ -147,7 +130,24 @@ export default function Settings() {
         </div>
       </section>
 
-      <section className="glass flex items-center justify-between gap-3 rounded-[26px] p-4">
+      <section className="glass rounded-[16px] p-4">
+        <h2 className="mb-3 text-[15px] font-semibold">Appearance</h2>
+        <Segmented
+          className="bg-text-950/[0.08]"
+          value={theme}
+          onChange={(v) => {
+            setTheme(v)
+            setThemePref(v)
+          }}
+          options={[
+            { value: 'light', label: 'Light' },
+            { value: 'dark', label: 'Dark' },
+            { value: 'system', label: 'System' },
+          ]}
+        />
+      </section>
+
+      <section className="glass flex items-center justify-between gap-3 rounded-[16px] p-4">
         <div>
           <h2 className="text-[15px] font-semibold">App version</h2>
           <p className="mt-0.5 text-[13px] text-text-950/65">
@@ -160,7 +160,7 @@ export default function Settings() {
       </section>
 
       <button
-        className="h-[52px] w-full rounded-[18px] border border-withdraw/50 bg-text-950/[0.06] text-[15px] font-semibold text-withdraw backdrop-blur-md transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+        className="h-[52px] w-full rounded-[12px] border border-withdraw/50 bg-text-950/[0.06] text-[15px] font-semibold text-withdraw backdrop-blur-md transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
         disabled={busy !== null}
         onClick={() =>
           run('erase', async () => {
