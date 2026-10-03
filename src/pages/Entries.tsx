@@ -1,8 +1,8 @@
-import { CalendarDays, Check, Receipt, StickyNote } from 'lucide-react'
+import { CalendarDays, Check, StickyNote } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import SwipeRow from '../components/SwipeRow'
-import { EmptyState, Field, InstitutionLogo, PageTitle, Segmented, SelectInput, btnCls, controlCls, inputCls, today } from '../components/ui'
+import { Field, InstitutionLogo, PageTitle, Segmented, SelectInput, btnCls, controlCls, inputCls, today } from '../components/ui'
 import { colorFor } from '../data/institutions'
 import { db } from '../db/db'
 import { CATEGORY_LABELS, CURRENCIES, type Category, type EntryType } from '../db/schema'
@@ -244,42 +244,28 @@ export default function Entries() {
         {error && <p className="mt-3 text-sm text-withdraw">{error}</p>}
       </section>
 
+      {entries.length > 0 && (
+        <>
       <div className="flex items-center justify-between pt-1">
         <h2 className="pl-1 text-[15px] font-semibold">History</h2>
-        {entries.length > 0 && (
-          <select
-            aria-label="Filter by bank or wallet"
-            className="h-11 max-w-[55%] bg-transparent text-right text-sm font-semibold text-link outline-none"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          >
-            <option value="">All banks</option>
-            {sorted
-              .filter((i) => usedInstitutionIds.has(i.id!))
-              .map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.name}
-                </option>
-              ))}
-          </select>
-        )}
+        <select
+          aria-label="Filter by bank or wallet"
+          className="h-11 max-w-[55%] bg-transparent text-right text-sm font-semibold text-link outline-none"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="">All banks</option>
+          {sorted
+            .filter((i) => usedInstitutionIds.has(i.id!))
+            .map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.name}
+              </option>
+            ))}
+        </select>
       </div>
 
-      {entries.length === 0 ? (
-        <div className="glass rounded-3xl">
-          <EmptyState
-            icon={<Receipt size={30} strokeWidth={1.75} />}
-            title="No entries yet"
-            description="Log your first deposit or withdrawal to start tracking where your money goes."
-            ctaLabel="Add your first entry"
-            onCta={() => {
-              const el = document.getElementById('entry-institution-select')
-              el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-              el?.focus({ preventScroll: true })
-            }}
-          />
-        </div>
-      ) : shown.length === 0 ? (
+      {shown.length === 0 ? (
         <p className="py-6 text-center text-sm text-text-950/65">No entries for this one.</p>
       ) : (
         <ul className="glass divide-y divide-text-950/10 rounded-3xl px-3.5">
@@ -404,6 +390,8 @@ export default function Entries() {
             )
           })}
         </ul>
+      )}
+        </>
       )}
     </div>
   )
