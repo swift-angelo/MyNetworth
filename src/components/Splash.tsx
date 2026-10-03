@@ -1,25 +1,27 @@
 import { useEffect, useState } from 'react'
 
-const KEY = 'mn-splash-seen'
+const KEY = 'mn-splash-at'
+/** Show again only after the app has been away this long, so update reloads and quick app switches don't replay it. */
+const AWAY_MS = 5 * 60 * 1000
 const HOLD_MS = 1300
 const FADE_MS = 450
 
 const alreadySeen = () => {
   try {
-    return sessionStorage.getItem(KEY) === '1'
+    return Date.now() - Number(localStorage.getItem(KEY) ?? 0) < AWAY_MS
   } catch {
     return false
   }
 }
 
-/** Launch splash: app icon and name over the page glow, shown once per app launch, then fades away. */
+/** Launch splash: app icon and name over the page glow, shown on launch (not again within a few minutes), then fades away. */
 export default function Splash() {
   const [phase, setPhase] = useState<'show' | 'fade' | 'gone'>(() => (alreadySeen() ? 'gone' : 'show'))
 
   useEffect(() => {
     if (phase === 'gone') return
     try {
-      sessionStorage.setItem(KEY, '1')
+      localStorage.setItem(KEY, String(Date.now()))
     } catch {
       /* private mode: just show it again next launch */
     }
