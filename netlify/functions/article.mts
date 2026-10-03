@@ -5,7 +5,7 @@ const MAX_REDIRECTS = 3
 const MAX_HTML_CHARS = 3_000_000
 /** Anything shorter than this is almost certainly a login wall, paywall notice or error page, not the article. */
 const MIN_ARTICLE_CHARS = 400
-const USER_AGENT = 'Mozilla/5.0 (compatible; MyNetworthReader/1.0; personal reader)'
+const USER_AGENT = 'Mozilla/5.0 (compatible; WealthRadarReader/1.0; personal reader)'
 
 const json = (body: unknown, status: number, cache: Record<string, string>) =>
   Response.json(body, { status, headers: cache })

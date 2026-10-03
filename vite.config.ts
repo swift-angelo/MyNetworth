@@ -15,8 +15,8 @@ export default defineConfig({
       includeAssets: ['logos/*.png'],
       workbox: { globPatterns: ['**/*.{js,css,html}', 'logos/*.png', 'icon-*.png', 'apple-touch-icon.png'] },
       manifest: {
-        name: 'MyNetworth',
-        short_name: 'MyNetworth',
+        name: 'WealthRadar',
+        short_name: 'WealthRadar',
         description: 'Track how much money you put into each bank and wallet.',
         theme_color: '#e9fee7',
         background_color: '#e9fee7',

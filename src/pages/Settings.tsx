@@ -101,7 +101,7 @@ export default function Settings() {
         <button
           className={btnCls + ' mt-3.5 !min-h-[52px] !text-base'}
           disabled={busy !== null}
-          onClick={() => run('backup', async () => download('mynetworth-backup.json', JSON.stringify(await exportAll(), null, 2), 'application/json'))}
+          onClick={() => run('backup', async () => download('wealthradar-backup.json', JSON.stringify(await exportAll(), null, 2), 'application/json'))}
         >
           {busy === 'backup' ? <Spinner /> : 'Export backup'}
         </button>

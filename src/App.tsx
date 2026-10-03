@@ -2,6 +2,7 @@ import { ArrowLeftRight, House, Settings2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { EntryDrawerProvider } from './components/EntryDrawer'
+import Splash from './components/Splash'
 import { seedIfEmpty } from './db/db'
 import { useAuth } from './lib/auth'
 import { refreshRates } from './lib/fx'
@@ -40,7 +41,10 @@ function SwipeMain({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLElement>(null)
   const navigate = useNavigate()
   const pathRef = useRef('')
-  pathRef.current = useLocation().pathname
+  const { pathname } = useLocation()
+  useEffect(() => {
+    pathRef.current = pathname
+  }, [pathname])
 
   useEffect(() => {
     const el = ref.current
@@ -159,7 +163,7 @@ function AppShell() {
         <p>Loading…</p>
         {slow && (
           <p className="mt-3 text-sm text-text-950/65">
-            Taking longer than usual. If MyNetworth is open in another tab or window, close it, then reload this page.
+            Taking longer than usual. If WealthRadar is open in another tab or window, close it, then reload this page.
           </p>
         )}
       </div>
@@ -184,7 +188,10 @@ function AppShell() {
 
 export default function App() {
   const { status } = useAuth()
-  if (status === 'loading') return <div className="p-6 text-text-950/75">Loading…</div>
-  if (status === 'signedOut') return <Login />
-  return <AppShell />
+  return (
+    <>
+      <Splash />
+      {status === 'loading' ? <div className="p-6 text-text-950/75">Loading…</div> : status === 'signedOut' ? <Login /> : <AppShell />}
+    </>
+  )
 }

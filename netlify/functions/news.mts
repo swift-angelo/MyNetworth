@@ -2,7 +2,7 @@ import { mergeItems, parseFeed, type NewsItem } from './lib/feed.ts'
 import { SOURCES, type Region } from './lib/sources.ts'
 
 const TIMEOUT_MS = 6000
-const USER_AGENT = 'MyNetworth/1.0 (personal finance app; reads public RSS headlines)'
+const USER_AGENT = 'WealthRadar/1.0 (personal finance app; reads public RSS headlines)'
 
 async function loadFeed(name: string, url: string): Promise<NewsItem[]> {
   const ctl = new AbortController()

@@ -155,8 +155,8 @@ export function AppHeader() {
   return (
     <div className="flex items-center justify-between pl-1 pt-3">
       <div className="flex items-center gap-2.5">
-        <img src="/icon-192.png" alt="MyNetworth" className="h-[34px] w-[34px] rounded-[8px] shadow-md" />
-        <span className="text-base font-semibold tracking-tight">MyNetworth</span>
+        <img src="/icon-192.png" alt="WealthRadar" className="h-[34px] w-[34px] rounded-[8px] shadow-md" />
+        <span className="text-base font-semibold tracking-tight">WealthRadar</span>
       </div>
       <Link
         to="/settings"

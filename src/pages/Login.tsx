@@ -41,8 +41,8 @@ export default function Login() {
   return (
     <div className="mx-auto flex h-dvh max-w-md flex-col px-6 pb-10 pt-[env(safe-area-inset-top)]">
       <div className="flex flex-1 flex-col items-center justify-center text-center">
-        <img src="/icon-192.png" alt="MyNetworth" className="h-24 w-24 rounded-[28px] shadow-[0_16px_36px_rgba(7,97,5,0.3)]" />
-        <h1 className="mt-6 text-[32px] font-bold tracking-tight">MyNetworth</h1>
+        <img src="/icon-192.png" alt="WealthRadar" className="h-24 w-24 rounded-[28px] shadow-[0_16px_36px_rgba(7,97,5,0.3)]" />
+        <h1 className="mt-6 text-[32px] font-bold tracking-tight">WealthRadar</h1>
         <p className="mt-2 max-w-[280px] text-base leading-snug text-text-950/70">Track every peso across your banks and wallets, in one place.</p>
       </div>
 
