@@ -1,73 +1,26 @@
-import { CalendarDays, Check, StickyNote } from 'lucide-react'
+import { Check, Plus, Receipt, StickyNote } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEntryDrawer } from '../components/EntryDrawer'
 import SwipeRow from '../components/SwipeRow'
-import { Field, InstitutionLogo, PageTitle, Segmented, SelectInput, btnCls, controlCls, inputCls, today } from '../components/ui'
+import { EmptyState, InstitutionLogo, PageTitle } from '../components/ui'
 import { colorFor } from '../data/institutions'
 import { db } from '../db/db'
-import { CATEGORY_LABELS, CURRENCIES, type Category, type EntryType } from '../db/schema'
 import { useData } from '../hooks/useData'
-import { formatAmountInput, formatMoney, toMinor } from '../lib/money'
+import { formatMoney } from '../lib/money'
 
 export default function Entries() {
   const { institutions, entries } = useData()
-  const [params] = useSearchParams()
-  const [type, setType] = useState<EntryType>(params.get('type') === 'withdrawal' ? 'withdrawal' : 'deposit')
-  const [institutionId, setInstitutionId] = useState('')
-  const [newName, setNewName] = useState('')
-  const [newCategory, setNewCategory] = useState<Category>('ewallet')
-  const [amount, setAmount] = useState('')
-  const [currency, setCurrency] = useState('PHP')
-  const [date, setDate] = useState(today())
-  const [note, setNote] = useState('')
-  const [error, setError] = useState('')
+  const { openDrawer } = useEntryDrawer()
   const [filter, setFilter] = useState('')
   const [openId, setOpenId] = useState<number | null>(null) // entry whose note is showing
   const [swipeId, setSwipeId] = useState<number | null>(null) // entry swiped open to reveal delete
   const [editingId, setEditingId] = useState<number | null>(null)
   const [draft, setDraft] = useState('')
   const [flashId, setFlashId] = useState<number | null>(null) // entry whose note was just saved (shows a check)
-  const [justAdded, setJustAdded] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   const instById = new Map(institutions.map((i) => [i.id!, i]))
   const sorted = [...institutions].sort((a, b) => a.name.localeCompare(b.name))
-  const selected = institutionId && institutionId !== 'new' ? instById.get(Number(institutionId)) : undefined
-
-  async function add(e: React.FormEvent) {
-    e.preventDefault()
-    const minor = toMinor(amount)
-    if (!institutionId) return setError('Pick a bank or wallet')
-    if (institutionId === 'new' && !newName.trim()) return setError('Enter a name for the new institution')
-    if (minor === null || minor <= 0) return setError('Enter a positive amount, e.g. 5,000.00')
-    if (!date) return setError('Pick a date')
-    setError('')
-
-    let instId = Number(institutionId)
-    if (institutionId === 'new') {
-      instId = (await db.institutions.add({
-        name: newName.trim(),
-        category: newCategory,
-        color: colorFor(institutions.length),
-        isCustom: true,
-      })) as number
-      setInstitutionId(String(instId))
-      setNewName('')
-    }
-    const trimmed = note.trim()
-    await db.entries.add({
-      institutionId: instId,
-      type,
-      amountMinor: minor,
-      currency,
-      date,
-      note: trimmed,
-      noteUpdatedAt: trimmed ? new Date().toISOString() : undefined,
-    })
-    setAmount('')
-    setNote('')
-    setJustAdded(true)
-    setTimeout(() => setJustAdded(false), 1300)
-  }
 
   // The editor opens near the bottom of the list; bring it (and its Save button) clear of the tab bar.
   useEffect(() => {
@@ -105,144 +58,28 @@ export default function Entries() {
 
   return (
     <div className="space-y-3.5">
-      <PageTitle>Entries</PageTitle>
+      <div className="flex items-center justify-between">
+        <PageTitle>Entries</PageTitle>
+        <button
+          type="button"
+          onClick={() => openDrawer()}
+          className="flex h-11 items-center gap-1.5 rounded-full bg-primary-500 pl-3.5 pr-5 text-sm font-semibold text-on-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_8px_20px_color-mix(in_srgb,var(--primary-500)_30%,transparent)] transition active:scale-95"
+        >
+          <Plus size={18} strokeWidth={2.5} /> Add
+        </button>
+      </div>
 
-      <section className="glass rounded-[28px] p-4">
-        <form onSubmit={add} className="grid min-w-0 gap-3">
-          <Segmented
-            className="bg-text-950/[0.08]"
-            value={type}
-            onChange={setType}
-            options={[
-              { value: 'deposit', label: 'Deposit' },
-              { value: 'withdrawal', label: 'Withdrawal' },
-            ]}
+      {entries.length === 0 && (
+        <div className="glass rounded-3xl">
+          <EmptyState
+            icon={<Receipt size={30} strokeWidth={1.75} />}
+            title="No entries yet"
+            description="Log your first deposit or withdrawal to start tracking where your money goes."
+            ctaLabel="Add your first entry"
+            onCta={() => openDrawer()}
           />
-
-          <Field label="Bank / wallet">
-            <div className="relative">
-              {selected && (
-                <span className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2">
-                  <InstitutionLogo name={selected.name} color={colorFor(selected.id!)} size={32} />
-                </span>
-              )}
-              <SelectInput
-                id="entry-institution-select"
-                className="font-medium"
-                style={{ paddingLeft: selected ? 58 : undefined }}
-                value={institutionId}
-                onChange={(e) => setInstitutionId(e.target.value)}
-              >
-                <option value="">Select…</option>
-                {(Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => {
-                  const group = sorted.filter((i) => i.category === cat)
-                  return (
-                    group.length > 0 && (
-                      <optgroup key={cat} label={CATEGORY_LABELS[cat]}>
-                        {group.map((i) => (
-                          <option key={i.id} value={i.id}>
-                            {i.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )
-                  )
-                })}
-                <option value="new">+ Add a new one…</option>
-              </SelectInput>
-            </div>
-          </Field>
-
-          {institutionId === 'new' && (
-            <>
-              <Field label="Name">
-                <input className={inputCls} value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. Tala" />
-              </Field>
-              <Field label="Type">
-                <SelectInput value={newCategory} onChange={(e) => setNewCategory(e.target.value as Category)}>
-                  {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v}
-                    </option>
-                  ))}
-                </SelectInput>
-              </Field>
-            </>
-          )}
-
-          <Field label="Amount">
-            <div
-              className={
-                'flex h-[68px] items-center gap-2.5 rounded-2xl border-[1.5px] bg-text-950/[0.06] pl-3.5 pr-3 backdrop-blur-md ' +
-                (type === 'deposit' ? 'border-deposit' : 'border-withdraw')
-              }
-            >
-              <input
-                inputMode="decimal"
-                className="min-w-0 flex-1 bg-transparent text-[28px] font-bold tracking-tight text-text-950 outline-none placeholder:text-text-950/30"
-                value={amount}
-                onChange={(e) => setAmount(formatAmountInput(e.target.value))}
-                placeholder="0.00"
-              />
-              <select
-                aria-label="Currency"
-                className="h-11 rounded-xl bg-text-950/[0.08] px-2.5 text-sm font-semibold text-text-950 outline-none"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-          </Field>
-
-          <Field label="Date">
-            <div className={controlCls + ' relative flex items-center gap-2.5 focus-within:border-primary-700'}>
-              <CalendarDays size={18} className="shrink-0 text-text-950/60" />
-              <span className="text-base">
-                {date ? new Date(date + 'T00:00:00').toLocaleDateString('en-PH', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Pick a date'}
-              </span>
-              <input
-                type="date"
-                aria-label="Date"
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                onClick={(e) => {
-                  try {
-                    e.currentTarget.showPicker?.()
-                  } catch {
-                    // some browsers only allow this from certain gestures; the native tap still works
-                  }
-                }}
-              />
-            </div>
-          </Field>
-
-          <Field label="Note">
-            <textarea
-              className={inputCls + ' h-[88px] resize-none py-4'}
-              placeholder="Optional"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </Field>
-
-          <button className={btnCls + ' mt-0.5'}>
-            {justAdded ? (
-              <span key="added" className="pop inline-flex items-center gap-2">
-                <Check size={22} strokeWidth={3} /> Added
-              </span>
-            ) : type === 'deposit' ? (
-              'Add deposit'
-            ) : (
-              'Add withdrawal'
-            )}
-          </button>
-        </form>
-        {error && <p className="mt-3 text-sm text-withdraw">{error}</p>}
-      </section>
+        </div>
+      )}
 
       {entries.length > 0 && (
         <>
@@ -276,10 +113,15 @@ export default function Entries() {
                 <SwipeRow
                   open={swipeId === e.id}
                   onOpenChange={(o) => setSwipeId(o ? e.id! : swipeId === e.id ? null : swipeId)}
-                  onDelete={() => {
-                    if (confirm('Delete this entry?')) {
-                      setSwipeId(null)
-                      db.entries.delete(e.id!)
+                  disabled={deletingId === e.id}
+                  onDelete={async () => {
+                    if (deletingId !== null || !confirm('Delete this entry?')) return
+                    setDeletingId(e.id!)
+                    setSwipeId(null)
+                    try {
+                      await db.entries.delete(e.id!)
+                    } finally {
+                      setDeletingId(null)
                     }
                   }}
                 >
@@ -365,7 +207,8 @@ export default function Entries() {
                           <div className="mt-2 flex justify-end gap-2">
                             <button
                               type="button"
-                              className="h-10 rounded-xl border border-text-950/15 bg-text-950/[0.06] px-4 text-sm font-semibold text-text-950 transition active:scale-90"
+                              className="h-10 rounded-xl border border-text-950/15 bg-text-950/[0.06] px-4 text-sm font-semibold text-text-950 transition active:scale-90 disabled:opacity-50"
+                              disabled={flashId !== null}
                               onClick={onCancelNote}
                             >
                               Cancel
@@ -376,6 +219,7 @@ export default function Entries() {
                                 'flex h-10 min-w-[84px] items-center justify-center rounded-xl bg-primary-500 px-5 text-sm font-semibold text-on-primary transition active:scale-90 ' +
                                 (flashId === e.id ? 'scale-105 shadow-[0_0_18px_color-mix(in_srgb,var(--primary-500)_60%,transparent)]' : '')
                               }
+                              disabled={flashId !== null}
                               onClick={() => onSaveNote(e.id!)}
                             >
                               {flashId === e.id ? <Check key="ok" size={20} strokeWidth={3} className="pop" /> : 'Save'}

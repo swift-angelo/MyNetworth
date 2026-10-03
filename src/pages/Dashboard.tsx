@@ -1,7 +1,7 @@
 import { ArrowDownToLine, ArrowUpFromLine, Wallet } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { useEntryDrawer } from '../components/EntryDrawer'
 import { AppHeader, EmptyState, InstitutionLogo, PillGroup } from '../components/ui'
 import { SEED_INSTITUTIONS, colorFor } from '../data/institutions'
 import { logoFor } from '../data/logos'
@@ -23,8 +23,9 @@ function periodLabel(key: string, period: Period) {
 
 export default function Dashboard() {
   const { loading, institutions, entries, rates } = useData()
+  const { openDrawer } = useEntryDrawer()
   const [view, setView] = useState<'institution' | 'category'>('institution')
-  const [period, setPeriod] = useState<Period>('month')
+  const [period, setPeriod] = useState<Period>('day')
 
   const instById = useMemo(() => new Map(institutions.map((i) => [i.id!, i])), [institutions])
 
@@ -72,7 +73,7 @@ export default function Dashboard() {
             title="Nothing tracked yet"
             description="Log a deposit or withdrawal for a bank or wallet and your totals and charts will show up here."
             ctaLabel="Add your first entry"
-            to="/entries"
+            onCta={() => openDrawer()}
           />
         </div>
         <div className="pt-3">
@@ -122,14 +123,14 @@ export default function Dashboard() {
       </section>
 
       <div className="grid grid-cols-2 gap-3">
-        <Link to="/entries?type=deposit" className={tileCls}>
+        <button type="button" onClick={() => openDrawer('deposit')} className={tileCls}>
           <ArrowDownToLine size={24} strokeWidth={1.75} />
           Deposit
-        </Link>
-        <Link to="/entries?type=withdrawal" className={tileCls}>
+        </button>
+        <button type="button" onClick={() => openDrawer('withdrawal')} className={tileCls}>
           <ArrowUpFromLine size={24} strokeWidth={1.75} />
           Withdraw
-        </Link>
+        </button>
       </div>
 
       <section className="glass rounded-[26px] px-4 pb-3 pt-3.5">

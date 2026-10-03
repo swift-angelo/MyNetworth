@@ -20,8 +20,10 @@ export function fromMinor(minor: number): number {
   return minor / 100
 }
 
+/** Whole amounts drop the cents (₱290), anything else keeps both decimals (₱290.50). */
 export function formatMoney(minor: number, currency = 'PHP'): string {
-  return new Intl.NumberFormat('en-PH', { style: 'currency', currency }).format(minor / 100)
+  const digits = minor % 100 === 0 ? 0 : 2
+  return new Intl.NumberFormat('en-PH', { style: 'currency', currency, minimumFractionDigits: digits, maximumFractionDigits: digits }).format(minor / 100)
 }
 
 /** Convert minor units of `currency` to PHP minor units using rates (PHP per unit). */

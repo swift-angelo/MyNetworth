@@ -1,6 +1,7 @@
 import { ArrowLeftRight, House, Settings2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import { EntryDrawerProvider } from './components/EntryDrawer'
 import { seedIfEmpty } from './db/db'
 import Dashboard from './pages/Dashboard'
 import Entries from './pages/Entries'
@@ -97,6 +98,7 @@ export default function App() {
 
   return (
     <HashRouter>
+      <EntryDrawerProvider>
       {/* App shell: exactly one dynamic-viewport tall, so the tab bar stays at the true bottom even as iOS Chrome's toolbar shows/hides. Only <main> scrolls. */}
       <div className="relative flex h-dvh flex-col overflow-hidden">
       <main id="scroll-root" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
@@ -106,6 +108,7 @@ export default function App() {
       </main>
       <TabBar />
       </div>
+      </EntryDrawerProvider>
     </HashRouter>
   )
 }

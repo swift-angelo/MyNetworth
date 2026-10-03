@@ -15,13 +15,25 @@ function download(name: string, content: string, type: string) {
 }
 
 const secondaryBtn =
-  'inline-flex h-12 items-center justify-center rounded-[14px] border border-text-950/15 bg-text-950/[0.06] text-sm font-semibold text-text-950 backdrop-blur-md transition active:scale-[0.97] active:bg-text-950/15'
+  'inline-flex h-12 items-center justify-center rounded-[14px] border border-text-950/15 bg-text-950/[0.06] text-sm font-semibold text-text-950 backdrop-blur-md transition active:scale-[0.97] active:bg-text-950/15 disabled:pointer-events-none disabled:opacity-50'
 
 export default function Settings() {
   const { fx, institutions, entries } = useData()
   const [msg, setMsg] = useState('')
   const [theme, setTheme] = useState<ThemePref>(getThemePref())
   const [edits, setEdits] = useState<Record<string, string>>({})
+  const [busy, setBusy] = useState<string | null>(null)
+
+  /** Runs one action at a time; every button is disabled until it finishes. */
+  async function run(key: string, fn: () => Promise<void> | void) {
+    if (busy !== null) return
+    setBusy(key)
+    try {
+      await fn()
+    } finally {
+      setBusy(null)
+    }
+  }
 
   async function saveRate(currency: string) {
     const v = parseFloat(edits[currency])
@@ -79,17 +91,28 @@ export default function Settings() {
         <p className="mt-1 text-[13px] leading-snug text-text-950/65">Your data lives only on this phone. Export a copy now and then.</p>
         <button
           className={btnCls + ' mt-3.5 !min-h-[52px] !text-base'}
-          onClick={async () => download('mynetworth-backup.json', JSON.stringify(await exportAll(), null, 2), 'application/json')}
+          disabled={busy !== null}
+          onClick={() => run('backup', async () => download('mynetworth-backup.json', JSON.stringify(await exportAll(), null, 2), 'application/json'))}
         >
           Export backup
         </button>
         <div className="mt-2.5 grid grid-cols-2 gap-2.5">
-          <button className={secondaryBtn} onClick={exportCsv}>
+          <button className={secondaryBtn} disabled={busy !== null} onClick={() => run('csv', exportCsv)}>
             Export CSV
           </button>
-          <label className={secondaryBtn + ' cursor-pointer'}>
+          <label className={secondaryBtn + ' cursor-pointer' + (busy !== null ? ' pointer-events-none opacity-50' : '')}>
             Import backup
-            <input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && onImport(e.target.files[0])} />
+            <input
+              type="file"
+              accept="application/json"
+              hidden
+              disabled={busy !== null}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                e.target.value = ''
+                if (file) run('import', () => onImport(file))
+              }}
+            />
           </label>
         </div>
       </section>
@@ -113,8 +136,8 @@ export default function Settings() {
                   />
                   <button
                     className={secondaryBtn + ' !h-11 px-4 disabled:opacity-40'}
-                    onClick={() => saveRate(r.currency)}
-                    disabled={edits[r.currency] === undefined}
+                    onClick={() => run('rate-' + r.currency, () => saveRate(r.currency))}
+                    disabled={busy !== null || edits[r.currency] === undefined}
                   >
                     Save
                   </button>
@@ -131,19 +154,22 @@ export default function Settings() {
             Built {new Date(__BUILD_TIME__).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
           </p>
         </div>
-        <button className={secondaryBtn + ' !h-11 shrink-0 px-4'} onClick={resetAppCache}>
+        <button className={secondaryBtn + ' !h-11 shrink-0 px-4'} disabled={busy !== null} onClick={() => run('refresh', resetAppCache)}>
           Refresh files
         </button>
       </section>
 
       <button
-        className="h-[52px] w-full rounded-[18px] border border-withdraw/50 bg-text-950/[0.06] text-[15px] font-semibold text-withdraw backdrop-blur-md transition active:scale-[0.98]"
-        onClick={async () => {
-          if (confirm('Erase ALL data? This cannot be undone.')) {
-            await wipeAll()
-            setMsg('All data erased')
-          }
-        }}
+        className="h-[52px] w-full rounded-[18px] border border-withdraw/50 bg-text-950/[0.06] text-[15px] font-semibold text-withdraw backdrop-blur-md transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+        disabled={busy !== null}
+        onClick={() =>
+          run('erase', async () => {
+            if (confirm('Erase ALL data? This cannot be undone.')) {
+              await wipeAll()
+              setMsg('All data erased')
+            }
+          })
+        }
       >
         Erase all data
       </button>

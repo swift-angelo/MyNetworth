@@ -12,11 +12,13 @@ export default function SwipeRow({
   open,
   onOpenChange,
   onDelete,
+  disabled = false,
   children,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   onDelete: () => void
+  disabled?: boolean
   children: ReactNode
 }) {
   const [drag, setDrag] = useState<number | null>(null)
@@ -74,7 +76,8 @@ export default function SwipeRow({
           type="button"
           aria-label="Delete entry"
           tabIndex={open ? 0 : -1}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-danger/15 text-danger transition active:scale-95"
+          disabled={disabled}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-danger/15 text-danger transition active:scale-95 disabled:pointer-events-none disabled:opacity-40"
           onClick={onDelete}
         >
           <Trash2 size={20} />
