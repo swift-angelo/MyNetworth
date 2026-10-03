@@ -5,7 +5,7 @@ A mobile-first web app for tracking how much money you put into each bank, e-wal
 - Log deposits and withdrawals per bank or wallet, with a date, an amount, a currency and an optional note.
 - See totals, a deposits-versus-withdrawals chart by day, month or year, and a breakdown by bank or by type.
 - Foreign-currency entries are converted to PHP using live exchange rates, fetched each time the app opens (rates by ExchangeRate-API).
-- A Finance news section on Home (Philippines and Global). Tap a headline to read the publisher's excerpt in the app, with a link to the full article. Headlines come from public RSS feeds through a small Netlify Function (`netlify/functions/news.mts`).
+- A Finance news section on Home (Philippines and Global). Tap a headline to read the article full screen in the app (when the publisher allows it), with a button to open the original. A Refresh button reloads the headlines. Headlines come from public RSS feeds through a small Netlify Function (`netlify/functions/news.mts`).
 - Light and dark themes. Installable as a home-screen app, and works offline.
 - All data stays in your browser (IndexedDB). Use **Settings → Export backup** to keep a copy.
 

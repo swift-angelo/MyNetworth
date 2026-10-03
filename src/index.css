@@ -115,6 +115,14 @@ body::before {
   box-shadow: 0 -12px 40px var(--glass-shadow);
 }
 
+/* Full-screen reader: opaque page colour with the same soft glows, so text sits on a calm background */
+.reader-bg {
+  background:
+    radial-gradient(60% 30% at 90% 0%, var(--glow-1), transparent 70%),
+    radial-gradient(55% 30% at 0% 60%, var(--glow-2), transparent 70%),
+    var(--background-50);
+}
+
 /* Thinner glass for the sticky header */
 .glass-bar {
   background: var(--bar);

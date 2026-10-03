@@ -1,4 +1,4 @@
-import { ArrowDownToLine, ArrowUpFromLine, Wallet } from 'lucide-react'
+import { BanknoteArrowDown, BanknoteArrowUp, Wallet } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useEntryDrawer } from '../components/EntryDrawer'
@@ -81,10 +81,16 @@ export default function Dashboard() {
           <p className="mb-2.5 px-1 text-[13px] text-text-950/65">Already set up for the Philippines</p>
           <div className="flex flex-wrap gap-2">
             {PH_CHIPS.map((name) => (
-              <span key={name} className="glass inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm">
+              <button
+                key={name}
+                type="button"
+                aria-label={`Add a deposit to ${name}`}
+                onClick={() => openDrawer('deposit', { institutionName: name })}
+                className="glass inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm transition active:scale-95"
+              >
                 {logoFor(name) && <img src={logoFor(name)!} alt="" className="h-[22px] w-[22px] rounded-md object-cover" />}
                 {name}
-              </span>
+              </button>
             ))}
             <span className="inline-flex h-11 items-center rounded-full border border-dashed border-text-950/30 px-4 text-sm text-text-950/65">
               + {Math.max(SEED_INSTITUTIONS.length - PH_CHIPS.length, 0)} more
@@ -125,11 +131,11 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 gap-3">
         <button type="button" onClick={() => openDrawer('deposit')} className={tileCls}>
-          <ArrowDownToLine size={24} strokeWidth={1.75} />
+          <BanknoteArrowDown size={26} strokeWidth={1.75} />
           Deposit
         </button>
         <button type="button" onClick={() => openDrawer('withdrawal')} className={tileCls}>
-          <ArrowUpFromLine size={24} strokeWidth={1.75} />
+          <BanknoteArrowUp size={26} strokeWidth={1.75} />
           Withdraw
         </button>
       </div>

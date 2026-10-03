@@ -55,8 +55,9 @@ export function writeNewsCache(region: NewsRegion, items: NewsItem[], fetchedAt:
   }
 }
 
-export async function fetchNews(region: NewsRegion, signal?: AbortSignal): Promise<NewsItem[]> {
-  const res = await fetch(`${ENDPOINT}?region=${region}`, { signal })
+/** `fresh` (manual refresh) skips the browser and CDN copies so the publishers are asked again. */
+export async function fetchNews(region: NewsRegion, signal?: AbortSignal, fresh = false): Promise<NewsItem[]> {
+  const res = await fetch(`${ENDPOINT}?region=${region}${fresh ? `&t=${Date.now()}` : ''}`, { signal, cache: fresh ? 'no-store' : 'default' })
   if (!res.ok) throw new Error(`News request failed (${res.status})`)
   const items = parseNewsItems((await res.json())?.items)
   if (items.length === 0) throw new Error('No news came back')
@@ -77,13 +78,13 @@ export function useNews(region: NewsRegion) {
   })
   const abort = useRef<AbortController | null>(null)
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (fresh = false) => {
     abort.current?.abort()
     const ctl = new AbortController()
     abort.current = ctl
     setStatus('loading')
     try {
-      const items = await fetchNews(region, ctl.signal)
+      const items = await fetchNews(region, ctl.signal, fresh)
       const fetchedAt = Date.now()
       writeNewsCache(region, items, fetchedAt)
       setCache({ fetchedAt, items })
@@ -100,7 +101,7 @@ export function useNews(region: NewsRegion) {
       setStatus('ready')
       return
     }
-    load()
+    void load()
     return () => abort.current?.abort()
   }, [region, load])
 
@@ -108,11 +109,14 @@ export function useNews(region: NewsRegion) {
     const onVisible = () => {
       if (document.visibilityState !== 'visible') return
       const saved = readNewsCache(region)
-      if (!saved || Date.now() - saved.fetchedAt >= NEWS_STALE_MS) load()
+      if (!saved || Date.now() - saved.fetchedAt >= NEWS_STALE_MS) void load()
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [region, load])
 
-  return { items: cache?.items ?? [], status, fetchedAt: cache?.fetchedAt ?? null, refresh: load }
+  /** Manual refresh: always asks the publishers again. */
+  const refresh = useCallback(() => load(true), [load])
+
+  return { items: cache?.items ?? [], status, fetchedAt: cache?.fetchedAt ?? null, refresh }
 }

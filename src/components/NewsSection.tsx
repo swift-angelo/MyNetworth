@@ -1,13 +1,14 @@
-import { ChevronRight, ExternalLink, RefreshCw } from 'lucide-react'
+import { ChevronRight, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { useNews, type NewsItem, type NewsRegion } from '../lib/news'
 import { timeAgo } from '../lib/time'
-import { Sheet, useSheetState } from './Sheet'
-import { PillGroup, btnCls } from './ui'
+import ArticleReader from './ArticleReader'
+import { useSheetState } from './Sheet'
+import { PillGroup } from './ui'
 
 const COLLAPSED = 6
 
-/** Finance headlines (Philippines / Global). Tap one to read the publisher's excerpt in a drawer, with a link to the full article. */
+/** Finance headlines (Philippines / Global). Tap one to read the article full screen in the app, with a button to open the original. */
 export default function NewsSection() {
   const [region, setRegion] = useState<NewsRegion>('ph')
   const [expanded, setExpanded] = useState(false)
@@ -16,6 +17,7 @@ export default function NewsSection() {
   const { items, status, fetchedAt, refresh } = useNews(region)
 
   const visible = expanded ? items : items.slice(0, COLLAPSED)
+  const refreshing = status === 'loading'
 
   return (
     <section aria-label="Finance news" className="space-y-3 pt-2">
@@ -32,6 +34,18 @@ export default function NewsSection() {
             { value: 'global', label: 'Global' },
           ]}
         />
+      </div>
+
+      <div className="flex items-center justify-between px-1 text-xs text-text-950/55">
+        <span aria-live="polite">{refreshing ? 'Updating…' : fetchedAt ? `Updated ${timeAgo(fetchedAt)}` : ''}</span>
+        <button
+          type="button"
+          onClick={refresh}
+          disabled={refreshing}
+          className="-mr-2 flex h-11 items-center gap-1.5 rounded-[10px] px-2.5 text-sm font-semibold text-link transition active:scale-95 disabled:opacity-50"
+        >
+          <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Refresh
+        </button>
       </div>
 
       {items.length === 0 && status === 'loading' && (
@@ -82,43 +96,11 @@ export default function NewsSection() {
             </button>
           )}
 
-          {status === 'error' && fetchedAt && (
-            <p className="px-1 text-xs text-text-950/55">
-              Couldn't refresh. Showing saved news from {timeAgo(fetchedAt)}.{' '}
-              <button type="button" className="font-semibold text-link" onClick={refresh}>
-                Retry
-              </button>
-            </p>
-          )}
+          {status === 'error' && fetchedAt && <p className="px-1 text-xs text-text-950/55">Couldn't refresh. Showing saved news from {timeAgo(fetchedAt)}.</p>}
         </>
       )}
 
-      {reader.mounted && selected && (
-        <Sheet shown={reader.shown} onClose={reader.close} label="News article" title={selected.source}>
-          <article className="pb-1">
-            <p className="px-1 text-xs text-text-950/65">
-              {new Date(selected.publishedAt).toLocaleString('en-PH', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-              {' · '}
-              {timeAgo(selected.publishedAt)}
-            </p>
-            <h3 className="mt-2 px-1 text-xl font-bold leading-tight tracking-tight">{selected.title}</h3>
-            {selected.summary ? (
-              <p className="mt-3 whitespace-pre-line px-1 text-[15px] leading-relaxed text-text-950/85">{selected.summary}</p>
-            ) : (
-              <p className="mt-3 px-1 text-[15px] text-text-950/65">The publisher didn't include a preview for this story.</p>
-            )}
-            <a
-              href={selected.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={btnCls + ' mt-5 inline-flex items-center justify-center gap-2'}
-            >
-              Read full article <ExternalLink size={18} />
-            </a>
-            <p className="mt-3 px-1 text-center text-xs text-text-950/55">Opens {selected.source} in your browser.</p>
-          </article>
-        </Sheet>
-      )}
+      {reader.mounted && selected && <ArticleReader key={selected.id} item={selected} shown={reader.shown} onClose={reader.close} />}
     </section>
   )
 }

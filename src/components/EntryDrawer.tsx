@@ -1,5 +1,5 @@
 import { CalendarDays, Check } from 'lucide-react'
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { colorFor } from '../data/institutions'
 import { db } from '../db/db'
 import { CATEGORY_LABELS, CURRENCIES, type Category, type EntryType } from '../db/schema'
@@ -8,21 +8,24 @@ import { formatAmountInput, toMinor } from '../lib/money'
 import { Sheet, useSheetState } from './Sheet'
 import { Field, InstitutionLogo, Segmented, SelectInput, btnCls, controlCls, inputCls, today } from './ui'
 
-type DrawerApi = { openDrawer: (type?: EntryType) => void }
+type DrawerOptions = { /** pre-select this bank or wallet (matched by name) */ institutionName?: string }
+type DrawerApi = { openDrawer: (type?: EntryType, options?: DrawerOptions) => void }
 const DrawerContext = createContext<DrawerApi>({ openDrawer: () => {} })
 
-/** Open the "add entry" drawer from anywhere; `type` presets Deposit or Withdrawal. */
+/** Open the "add entry" drawer from anywhere; `type` presets Deposit or Withdrawal, `institutionName` pre-selects a bank or wallet. */
 export const useEntryDrawer = () => useContext(DrawerContext)
 
 /** Holds the drawer so any screen's Deposit / Withdraw / Add button can open it without navigating. */
 export function EntryDrawerProvider({ children }: { children: ReactNode }) {
   const sheet = useSheetState()
   const [preset, setPreset] = useState<EntryType>('deposit')
+  const [presetInstitution, setPresetInstitution] = useState<string | undefined>(undefined)
   const [session, setSession] = useState(0) // a fresh form on every open
 
   const openDrawer = useCallback(
-    (type: EntryType = 'deposit') => {
+    (type: EntryType = 'deposit', options?: DrawerOptions) => {
       setPreset(type)
+      setPresetInstitution(options?.institutionName)
       setSession((n) => n + 1)
       sheet.open()
     },
@@ -32,12 +35,22 @@ export function EntryDrawerProvider({ children }: { children: ReactNode }) {
   return (
     <DrawerContext.Provider value={{ openDrawer }}>
       {children}
-      {sheet.mounted && <EntryDrawer key={session} shown={sheet.shown} initialType={preset} onClose={sheet.close} />}
+      {sheet.mounted && <EntryDrawer key={session} shown={sheet.shown} initialType={preset} initialInstitution={presetInstitution} onClose={sheet.close} />}
     </DrawerContext.Provider>
   )
 }
 
-function EntryDrawer({ shown, initialType, onClose }: { shown: boolean; initialType: EntryType; onClose: () => void }) {
+function EntryDrawer({
+  shown,
+  initialType,
+  initialInstitution,
+  onClose,
+}: {
+  shown: boolean
+  initialType: EntryType
+  initialInstitution?: string
+  onClose: () => void
+}) {
   const { institutions } = useData()
   const [type, setType] = useState<EntryType>(initialType)
   const [institutionId, setInstitutionId] = useState('')
@@ -54,6 +67,13 @@ function EntryDrawer({ shown, initialType, onClose }: { shown: boolean; initialT
   const instById = new Map(institutions.map((i) => [i.id!, i]))
   const sorted = [...institutions].sort((a, b) => a.name.localeCompare(b.name))
   const selected = institutionId && institutionId !== 'new' ? instById.get(Number(institutionId)) : undefined
+
+  // Opened from a bank chip: fill in that bank as soon as the list is available (it loads asynchronously).
+  useEffect(() => {
+    if (!initialInstitution || institutionId) return
+    const match = institutions.find((i) => i.name.toLowerCase() === initialInstitution.toLowerCase())
+    if (match) setInstitutionId(String(match.id))
+  }, [institutions, initialInstitution, institutionId])
 
   async function add(e: React.FormEvent) {
     e.preventDefault()
