@@ -1,0 +1,162 @@
+/* Colour palette. Dark is the default; the active theme is set via <html data-theme>. */
+:root[data-theme="light"] {
+  --text-50: #e9fee7;
+  --text-100: #d3fccf;
+  --text-200: #a8f99f;
+  --text-300: #7cf76e;
+  --text-400: #50f43e;
+  --text-500: #25f10e;
+  --text-600: #1dc10b;
+  --text-700: #169108;
+  --text-800: #0f6006;
+  --text-900: #073003;
+  --text-950: #041801;
+
+  --background-50: #e9fee7;
+  --background-100: #d4fccf;
+  --background-200: #a9fa9e;
+  --background-300: #7ef76e;
+  --background-400: #53f53d;
+  --background-500: #28f20d;
+  --background-600: #20c20a;
+  --background-700: #189108;
+  --background-800: #106105;
+  --background-900: #083003;
+  --background-950: #041801;
+
+  --primary-50: #e7fee7;
+  --primary-100: #cffccf;
+  --primary-200: #a0fa9e;
+  --primary-300: #70f76e;
+  --primary-400: #40f53d;
+  --primary-500: #11f20d;
+  --primary-600: #0dc20a;
+  --primary-700: #0a9108;
+  --primary-800: #076105;
+  --primary-900: #033003;
+  --primary-950: #021801;
+
+  --secondary-50: #e7f9fe;
+  --secondary-100: #cff3fc;
+  --secondary-200: #9ee8fa;
+  --secondary-300: #6edcf7;
+  --secondary-400: #3dd0f5;
+  --secondary-500: #0dc4f2;
+  --secondary-600: #0a9dc2;
+  --secondary-700: #087691;
+  --secondary-800: #054f61;
+  --secondary-900: #032730;
+  --secondary-950: #011418;
+
+  --accent-50: #e7f0fe;
+  --accent-100: #cfe2fc;
+  --accent-200: #9ec4fa;
+  --accent-300: #6ea7f7;
+  --accent-400: #3d8af5;
+  --accent-500: #0d6cf2;
+  --accent-600: #0a57c2;
+  --accent-700: #084191;
+  --accent-800: #052b61;
+  --accent-900: #031630;
+  --accent-950: #010b18;
+
+  color-scheme: light;
+
+  /* Semantic roles built from the palette */
+  --on-primary: var(--primary-950);
+  --tab-line: var(--primary-700);
+  --link: var(--primary-800);
+  --deposit: var(--primary-800);
+  --withdraw: var(--secondary-700);
+  --muted: color-mix(in srgb, var(--text-950) 65%, transparent);
+  --glass-a: color-mix(in srgb, white 60%, transparent);
+  --glass-b: color-mix(in srgb, white 30%, transparent);
+  --glass-border: color-mix(in srgb, var(--text-950) 12%, transparent);
+  --glass-highlight: color-mix(in srgb, white 80%, transparent);
+  --glass-shadow: rgba(4, 24, 1, 0.12);
+  --bar: color-mix(in srgb, var(--background-50) 75%, transparent);
+  --glow-1: color-mix(in srgb, var(--primary-300) 55%, transparent);
+  --glow-2: color-mix(in srgb, var(--secondary-300) 40%, transparent);
+  --glow-3: color-mix(in srgb, var(--accent-300) 35%, transparent);
+}
+
+:root[data-theme="dark"] {
+  --text-50: #041801;
+  --text-100: #073003;
+  --text-200: #0f6006;
+  --text-300: #169108;
+  --text-400: #1dc10b;
+  --text-500: #25f10e;
+  --text-600: #50f43e;
+  --text-700: #7cf76e;
+  --text-800: #a8f99f;
+  --text-900: #d3fccf;
+  --text-950: #e9fee7;
+
+  --background-50: #041801;
+  --background-100: #083003;
+  --background-200: #106105;
+  --background-300: #189108;
+  --background-400: #20c20a;
+  --background-500: #28f20d;
+  --background-600: #53f53d;
+  --background-700: #7ef76e;
+  --background-800: #a9fa9e;
+  --background-900: #d4fccf;
+  --background-950: #e9fee7;
+
+  --primary-50: #021801;
+  --primary-100: #033003;
+  --primary-200: #076105;
+  --primary-300: #0a9108;
+  --primary-400: #0dc20a;
+  --primary-500: #11f20d;
+  --primary-600: #40f53d;
+  --primary-700: #70f76e;
+  --primary-800: #a0fa9e;
+  --primary-900: #cffccf;
+  --primary-950: #e7fee7;
+
+  --secondary-50: #011418;
+  --secondary-100: #032730;
+  --secondary-200: #054f61;
+  --secondary-300: #087691;
+  --secondary-400: #0a9dc2;
+  --secondary-500: #0dc4f2;
+  --secondary-600: #3dd0f5;
+  --secondary-700: #6edcf7;
+  --secondary-800: #9ee8fa;
+  --secondary-900: #cff3fc;
+  --secondary-950: #e7f9fe;
+
+  --accent-50: #010b18;
+  --accent-100: #031630;
+  --accent-200: #052b61;
+  --accent-300: #084191;
+  --accent-400: #0a57c2;
+  --accent-500: #0d6cf2;
+  --accent-600: #3d8af5;
+  --accent-700: #6ea7f7;
+  --accent-800: #9ec4fa;
+  --accent-900: #cfe2fc;
+  --accent-950: #e7f0fe;
+
+  color-scheme: dark;
+
+  /* Semantic roles built from the palette */
+  --on-primary: var(--primary-50);
+  --tab-line: var(--primary-500);
+  --link: var(--primary-600);
+  --deposit: var(--primary-600);
+  --withdraw: var(--secondary-600);
+  --muted: color-mix(in srgb, var(--text-950) 65%, transparent);
+  --glass-a: color-mix(in srgb, var(--text-950) 10%, transparent);
+  --glass-b: color-mix(in srgb, var(--text-950) 4%, transparent);
+  --glass-border: color-mix(in srgb, var(--text-950) 14%, transparent);
+  --glass-highlight: color-mix(in srgb, var(--text-950) 18%, transparent);
+  --glass-shadow: rgba(0, 0, 0, 0.35);
+  --bar: color-mix(in srgb, var(--background-50) 70%, transparent);
+  --glow-1: color-mix(in srgb, var(--primary-500) 22%, transparent);
+  --glow-2: color-mix(in srgb, var(--secondary-500) 16%, transparent);
+  --glow-3: color-mix(in srgb, var(--accent-500) 22%, transparent);
+}
